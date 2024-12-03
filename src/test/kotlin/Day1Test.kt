@@ -5,12 +5,12 @@ class Day1Test : FunSpec({
 
     val realInput = readLines("day1.txt")
     val exampleInput = readLines("day1.txt", true)
-    
+
     context("Part 1") {
         test("should solve example") {
             Day1(exampleInput).part1() shouldBe 11
         }
-        
+
         test("should solve real input") {
             Day1(realInput).part1() shouldBe 2000468
         }
@@ -20,7 +20,7 @@ class Day1Test : FunSpec({
         test("should solve example") {
             Day1(exampleInput).part2() shouldBe 31
         }
-        
+
         test("should solve real input") {
             Day1(realInput).part2() shouldBe 18567089
         }
