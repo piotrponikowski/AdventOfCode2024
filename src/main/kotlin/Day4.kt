@@ -3,34 +3,28 @@ class Day4(input: List<String>) {
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
     
-    fun part1() {
+    fun part1():Int {
         var result = 0
         board.keys.forEach { point ->
             Direction.entries.forEach { direction ->
-                print("Checking $point $direction ")
                 if(check(point, direction)) {
-                    print(" true ")
                     result += 1
                 }
-                println()
             }
         }
         
-        println(result)
+        return result
     }
 
-    fun part2() {
+    fun part2():Int {
         var result = 0
         board.keys.forEach { point ->
             var temp = 0
             
             Direction2.entries.forEach { direction ->
-                print("Checking $point $direction ")
                 if(check2(point, direction)) {
-                    print(" true ")
                     temp += 1
                 }
-                println()
             }
             
             if(temp == 2) {
@@ -38,7 +32,7 @@ class Day4(input: List<String>) {
             }
         }
 
-        println(result)
+        return result
     }
 
     private fun check(start: Point, direction: Direction):Boolean {
