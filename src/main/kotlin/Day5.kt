@@ -4,7 +4,9 @@ class Day5(input: List<List<String>>) {
         .map { line -> line.split("|") }
         .map { (page1, page2) -> page1.toInt() to page2.toInt() }
 
-    private val updates = input.last().map { line -> line.split(",").map { page -> page.toInt() } }
+    private val updates = input.last()
+        .map { line -> line.split(",").map { page -> page.toInt() } }
+
     private val sortedUpdates = updates.map { update -> sort(update) }
 
     fun part1() = sortedUpdates
