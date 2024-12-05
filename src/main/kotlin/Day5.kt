@@ -1,19 +1,15 @@
 class Day5(input: List<List<String>>) {
 
-    private val rules = input.first().map { it.split("|") }.map { (a, b) -> a.toInt() to b.toInt() }
-    private val updates = input.last().map { it.split(",").map { it.toInt() } }
+    private val rules = input.first()
+        .map { line -> line.split("|") }
+        .map { (page1, page2) -> page1.toInt() to page2.toInt() }
+    
+    private val updates = input.last()
+        .map { line -> line.split(",").map { page -> page.toInt() } }
 
-    fun part1(): Int {
-        println(rules)
-        println(updates)
-
-        val result = updates.filter { isCorrect(it) }
-        println(result)
-
-        val score = result.map { it[it.size / 2] }
-        println(score)
-        return score.sum()
-    }
+    fun part1() = updates
+        .filter { update -> isCorrect(update) }
+        .sumOf { update -> update[update.size / 2] }
 
     fun part2(): Int {
         println(rules)
@@ -47,28 +43,9 @@ class Day5(input: List<List<String>>) {
         return update.sortedWith(comparator)
     }
 
-    private fun fix(update: List<Int>, solutions: List<List<Int>> = emptyList(), step: Int = 0): List<Int> {
-        return if (step == 0) {
-            fix(update, update.map { listOf(it) }, 1)
-        } else if (step == update.size) {
-            solutions.first()
-        } else {
-            val newSolutions = solutions.flatMap { s -> update.filter { u -> u !in s }.map { u -> s + u } }
-            val checkedSolutions = newSolutions.filter { isCorrect(it) }
-
-            fix(update, checkedSolutions, step + 1)
-        }
-    }
-
-    private fun isCorrect(update: List<Int>): Boolean {
-        val correct = rules.all { rule ->
-            val p1 = update.indexOf(rule.first)
-            val p2 = update.indexOf(rule.second)
-            p1 == -1 || p2 == -1 || p1 <= p2
-        }
-
-        return correct
-    }
+    private fun isCorrect(update: List<Int>) = rules
+        .map { (page1, page2) -> update.indexOf(page1) to update.indexOf(page2) }
+        .all { (index1, index2) -> index1 == -1 || index2 == -1 || index1 <= index2 }
 }
 
 fun main() {
