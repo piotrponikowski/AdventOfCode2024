@@ -13,16 +13,14 @@ class Day5(input: List<List<String>>) {
 
     fun part2() = updates
         .filter { update -> !isUpdateCorrect(update) }
-        .map { update -> fix(update) }
+        .map { update -> sort(update) }
         .sumOf { update -> update[update.size / 2] }
 
-    private fun fix(update: List<Int>) = update.sortedWith { page1, page2 ->
-        if (isMatchingAnyRule(page1, page2)) {
-            1
-        } else if (isMatchingAnyRule(page2, page1)) {
-            -1
-        } else {
-            0
+    private fun sort(update: List<Int>) = update.sortedWith { page1, page2 ->
+        when {
+            isMatchingAnyRule(page1, page2) -> -1
+            isMatchingAnyRule(page2, page1) -> 1
+            else -> 0
         }
     }
 
