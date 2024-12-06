@@ -3,58 +3,41 @@ class Day6(input: List<String>) {
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
 
-    private val startPosition = board.entries.first { it.value == '^' }.key
-    private val startDirection = Direction.U
+    private val obstacles = board.filterValues { symbol -> symbol == '#' }.keys
+    private val startingPosition = board.entries.first { (_, symbol) -> symbol == '^' }.key
+    private val startingState = State(startingPosition, Direction.U)
 
-    fun part1(): Int {
-        println(board)
-        println(startPosition)
+    fun part1() = path().size
 
-        val visited = mutableSetOf<Point>()
+    fun part2() = path()
+        .filter { possibleObstacle -> possibleObstacle != startingState.position }
+        .count { possibleObstacle -> !solve(possibleObstacle).second }
 
-        var position = startPosition
-        var direction = startDirection
+    private fun path() = solve()
+        .let { (visitedStates, _) -> visitedStates.map { state -> state.position } }.toSet()
 
-        while (position in board.keys) {
-            visited += position
+    private fun solve(additionalObstacle: Point? = null): Pair<Set<State>, Boolean> {
+        val visitedStates = mutableSetOf<State>()
+        var currentState = startingState
 
-            val nextPosition = position + direction
-            if (board[nextPosition] == '#') {
-                direction = direction.rotate()
-            } else {
-                position = nextPosition
+        while (currentState.position in board.keys && currentState !in visitedStates) {
+            visitedStates += currentState
+
+            var nextState = currentState.move()
+            if (nextState.position in obstacles || nextState.position == additionalObstacle) {
+                nextState = currentState.rotate()
             }
+
+            currentState = nextState
         }
 
-        println(visited)
-        return visited.size
+        return visitedStates to (currentState.position !in board.keys)
     }
 
-    fun part2() = board.entries.filter { it.value == '.' }.count { !canEscape(it.key) }
-
-    fun canEscape(block: Point): Boolean {
-        val visited = mutableSetOf<Pair<Point, Direction>>()
-
-        var position = startPosition
-        var direction = startDirection
-
-        val newBoard = board.toMutableMap()
-        newBoard[block] = '#'
-
-        while (position in newBoard.keys && position to direction !in visited) {
-            visited += position to direction
-
-            val nextPosition = position + direction
-            if (newBoard[nextPosition] == '#') {
-                direction = direction.rotate()
-            } else {
-                position = nextPosition
-            }
-        }
-
-        return position !in board.keys
+    data class State(val position: Point, val direction: Direction) {
+        fun rotate() = State(position, direction.rotate())
+        fun move() = State(position + direction, direction)
     }
-
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Direction) = Point(x + other.x, y + other.y)
