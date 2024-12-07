@@ -1,78 +1,45 @@
 class Day7(input: List<String>) {
 
     private val equations = input
-        .map { it.split(": ") }
-        .map { it.first().toLong() to it.last().split(" ").map { it.toLong() } }
-        .map { (a, b) -> Equation(a, b) }
+        .map { line -> line.split(": ") }
+        .map { (expectedResult, numbers) -> expectedResult to numbers.split(" ") }
+        .map { (expectedResult, numbers) -> expectedResult.toLong() to numbers.map { number -> number.toLong() } }
+        .map { (expectedResult, numbers) -> Equation(expectedResult, numbers) }
 
-    fun part1() {
-        println(equations)
-        val e = equations.map { solve(it) to it }.filter { (a, b) -> a != null }.map { it.second.result }.sum()
-        println(e)
-    }
+    fun part1() = equations
+        .filter { equation -> canSolve(equation, listOf(::plus, ::times)) }
+        .sumOf { equation -> equation.expectedResult }
 
-    fun part2() {
-        println(equations)
-        val e = equations.map { solve(it) to it }.filter { (a, b) -> a != null }.map { it.second.result }.sum()
-        println(e)
-    }
+    fun part2() = equations
+        .filter { equation -> canSolve(equation, listOf(::plus, ::times, ::join)) }
+        .sumOf { equation -> equation.expectedResult }
 
-    private fun solve(equation: Equation, solutions: List<List<Sign>> = listOf(listOf()), index: Int = 0): List<Sign>? {
-        println("Solve $equation, $solutions, $index")
-        return if (index < equation.numbers.size - 2) {
-            val nextSolutions = solutions
-                .flatMap { solution -> Sign.entries.map { sign -> solution + sign } }
-                .filter { solution -> calculate(equation, solution) <= equation.result }
+    private fun canSolve(
+        equation: Equation,
+        operations: List<(Long, Long) -> Long>,
+        results: List<Long> = emptyList(),
+        index: Int = 0
+    ): Boolean {
+        return if (index == 0) {
+            canSolve(equation, operations, results + equation.numbers.first(), 1)
+        } else if (index < equation.numbers.size) {
+            val currentNumber = equation.numbers[index]
 
-            solve(equation, nextSolutions, index + 1)
+            val nextResults = results
+                .flatMap { result -> operations.map { operation -> operation.invoke(result, currentNumber) } }
+                .filter { result -> result <= equation.expectedResult }
 
+            canSolve(equation, operations, nextResults, index + 1)
         } else {
-            val nextSolutions = solutions
-                .flatMap { solution -> Sign.entries.map { sign -> solution + sign } }
-                .filter { solution -> calculate(equation, solution) == equation.result }
-
-            return if (nextSolutions.isNotEmpty()) nextSolutions[0] else null
+            results.any { result -> result == equation.expectedResult }
         }
     }
 
-    private fun calculate(equation: Equation, signs: List<Sign>): Long {
-        //println("Calculate $signs")
-//        val a = listOf(Sign.MUL, Sign.ADD, Sign.MUL)
-//        if(signs == a) {
-//            println()
-//        }
-        
-        val start = equation.numbers.first()
-        val rest = equation.numbers.drop(1)
-        val value = rest.foldIndexed(start) { index, result, number ->
-            val sign = if (index < signs.size) signs[index] else null
-            when (sign) {
-                Sign.ADD -> result + number
-                Sign.MUL -> result * number
-                Sign.JOIN -> (result.toString() + number.toString()).toLong()
-                else -> result
-            }
-        }
+    data class Equation(val expectedResult: Long, val numbers: List<Long>)
 
-        //println("Calculated $signs, $value ")
+    private fun plus(number1: Long, number2: Long) = number1 + number2
 
-        return value
-    }
+    private fun times(number1: Long, number2: Long) = number1 * number2
 
-    data class Equation(val result: Long, val numbers: List<Long>)
-
-    enum class Sign {
-        ADD, MUL, JOIN
-    }
-}
-
-fun main() {
-    val realInput = readLines("day7.txt")
-    val exampleInput = readLines("day7.txt", true)
-
-    val r1 = Day7(exampleInput).part1()
-    println(r1)
-
-    val r2 = Day7(realInput).part1()
-    println(r2)
+    private fun join(number1: Long, number2: Long) = (number1.toString() + number2.toString()).toLong()
 }
