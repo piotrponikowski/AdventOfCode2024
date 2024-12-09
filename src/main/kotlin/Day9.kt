@@ -46,17 +46,17 @@ class Day9(input: String) {
 
     private fun findSpace(data: Array<Int?>, size: Int, beforeIndex: Int): Int? {
         var scanIndex = 0
+        var spaceStartIndex = 0
         var currentSize = 0
-        var spaceIndex = 0
 
         while (scanIndex < beforeIndex) {
             currentSize = if (data[scanIndex] == null) currentSize + 1 else 0
             if (currentSize == 1) {
-                spaceIndex = scanIndex
+                spaceStartIndex = scanIndex
             }
 
             if (currentSize == size) {
-                return spaceIndex
+                return spaceStartIndex
             } else {
                 scanIndex++
             }
