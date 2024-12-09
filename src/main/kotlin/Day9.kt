@@ -32,12 +32,10 @@ class Day9(input: String) {
             val dataStartIndex = data.indexOfFirst { value -> value == dataId }
             val dataEndIndex = data.indexOfLast { value -> value == dataId }
             val dataSize = (dataEndIndex - dataStartIndex) + 1
-
             val spaceStartIndex = findSpace(data, dataSize, dataStartIndex)
-
+            
             if (spaceStartIndex != null) {
                 val spaceEndIndex = (spaceStartIndex + dataSize) - 1
-
                 (spaceStartIndex..spaceEndIndex).forEach { index -> data[index] = dataId }
                 (dataStartIndex..dataEndIndex).forEach { index -> data[index] = null }
             }
