@@ -10,43 +10,61 @@ class Day9(input: String) {
     fun part1(): Long {
         val data = startingData.copyOf()
 
-        var spaceIndex = findNextSpace(data, 0)
-        var dataIndex = findPrevData(data, data.size - 1)
+        var spaceIndex = data.indexOfFirst { dataId -> dataId == null }
+        var dataIndex = data.indexOfLast { dataId -> dataId != null }
 
         while (spaceIndex < dataIndex) {
-            val dataId = data[dataIndex]
-            data[spaceIndex] = dataId
+            data[spaceIndex] = data[dataIndex]
             data[dataIndex] = null
 
-            spaceIndex = findNextSpace(data, spaceIndex)
-            dataIndex = findPrevData(data, dataIndex)
+            spaceIndex = data.indexOfFirst { dataId -> dataId == null }
+            dataIndex = data.indexOfLast { dataId -> dataId != null }
         }
 
         return checksum(data)
     }
 
-    fun part2() = 2
+    fun part2(): Long {
+        val data = startingData.copyOf()
+        val maxDataId = data.filterNotNull().maxOf { dataId -> dataId }
 
-    private fun findNextSpace(data: Array<Int?>, fromIndex: Int) =
-        findNext(data, fromIndex) { dataId -> dataId == null }
+        (maxDataId downTo 0).forEach { dataId ->
+            val dataStartIndex = data.indexOfFirst { value -> value == dataId }
+            val dataEndIndex = data.indexOfLast { value -> value == dataId }
+            val dataSize = (dataEndIndex - dataStartIndex) + 1
 
-    private fun findPrevData(data: Array<Int?>, fromIndex: Int) =
-        findPrev(data, fromIndex) { dataId -> dataId != null }
+            val spaceStartIndex = findSpace(data, dataSize, dataStartIndex)
 
-    private fun findNext(data: Array<Int?>, fromIndex: Int, condition: (Int?) -> Boolean): Int {
-        var currentIndex = fromIndex
-        while (!condition(data[currentIndex])) {
-            currentIndex++
+            if (spaceStartIndex != null) {
+                val spaceEndIndex = (spaceStartIndex + dataSize) - 1
+
+                (spaceStartIndex..spaceEndIndex).forEach { index -> data[index] = dataId }
+                (dataStartIndex..dataEndIndex).forEach { index -> data[index] = null }
+            }
         }
-        return currentIndex
+
+        return checksum(data)
     }
 
-    private fun findPrev(data: Array<Int?>, fromIndex: Int, condition: (Int?) -> Boolean): Int {
-        var currentIndex = fromIndex
-        while (!condition(data[currentIndex])) {
-            currentIndex--
+    private fun findSpace(data: Array<Int?>, size: Int, beforeIndex: Int): Int? {
+        var scanIndex = 0
+        var currentSize = 0
+        var spaceIndex = 0
+
+        while (scanIndex < beforeIndex) {
+            currentSize = if (data[scanIndex] == null) currentSize + 1 else 0
+            if (currentSize == 1) {
+                spaceIndex = scanIndex
+            }
+
+            if (currentSize == size) {
+                return spaceIndex
+            } else {
+                scanIndex++
+            }
         }
-        return currentIndex
+
+        return null
     }
 
     private fun checksum(data: Array<Int?>) = data
