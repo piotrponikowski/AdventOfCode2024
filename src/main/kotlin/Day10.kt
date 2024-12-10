@@ -2,72 +2,40 @@ class Day10(input: List<String>) {
 
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }
-        .associate { (point, symbol) -> point to if(symbol == '.') null else symbol.toString().toInt() }
+        .associate { (point, symbol) -> point to if (symbol == '.') null else symbol.toString().toInt() }
+
+    private val startingPoints = board.filterValues { value -> value == 0 }.keys
 
     private val edges = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
     
-    fun part1() {
-        println(board)
-        
-        val starts = board.filterValues { it == 0 }.keys
-        println(starts)
-        
-        val result = starts.map { score(it) }.sum()
-        println(result)
-    }
-    
-    private fun score(start: Point):Int {
-        var points = listOf(start)
+    fun part1() = startingPoints
+        .map { startingPoint -> paths(startingPoint) }
+        .sumOf { endPoints -> endPoints.toSet().size }
 
-        (1..9).forEach { value ->
-            val nextPoints = mutableListOf<Point>()
-            
-            points.forEach { point ->
-                edges.forEach { direction ->
-                    val neighbour = point + direction
-                    val edgeValue = board[neighbour]
-                    if(edgeValue == value) {
-                        nextPoints += neighbour
-                    }
-                }
-            }
-            
-            points = nextPoints
-        }
-        
-        return points.toSet().size
-    }
+    fun part2() = startingPoints
+        .map { startingPoint -> paths(startingPoint) }
+        .sumOf { endPoints -> endPoints.size }
 
-    fun part2() {
-        println(board)
-
-        val starts = board.filterValues { it == 0 }.keys
-        println(starts)
-
-        val result = starts.map { score2(it) }.sum()
-        println(result)
-    }
-
-    private fun score2(start: Point):Int {
-        var points = listOf(start)
+    private fun paths(start: Point): List<Point> {
+        var currentPoints = listOf(start)
 
         (1..9).forEach { value ->
             val nextPoints = mutableListOf<Point>()
 
-            points.forEach { point ->
+            currentPoints.forEach { point ->
                 edges.forEach { direction ->
                     val neighbour = point + direction
                     val edgeValue = board[neighbour]
-                    if(edgeValue == value) {
+                    if (edgeValue == value) {
                         nextPoints += neighbour
                     }
                 }
             }
 
-            points = nextPoints
+            currentPoints = nextPoints
         }
 
-        return points.size
+        return currentPoints
     }
 
     data class Point(val x: Int, val y: Int) {
