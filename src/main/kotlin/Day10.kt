@@ -20,10 +20,10 @@ class Day10(input: List<String>) {
 
     private fun calculateNextPoints(points: List<Point>, expectedValue: Int) = points
         .flatMap { point ->
-            edges.flatMap { direction ->
+            edges.mapNotNull { direction ->
                 val neighbour = point + direction
-                val edgeValue = board[neighbour]
-                if (edgeValue == expectedValue) listOf(neighbour) else emptyList()
+                val neighbourValue = board[neighbour]
+                neighbour.takeIf { neighbourValue == expectedValue }
             }
         }
 
