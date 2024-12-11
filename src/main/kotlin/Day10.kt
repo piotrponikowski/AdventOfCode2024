@@ -2,7 +2,7 @@ class Day10(input: List<String>) {
 
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }
-        .associate { (point, symbol) -> point to if (symbol == '.') null else symbol.toString().toInt() }
+        .associate { (point, symbol) -> point to symbol.toString().toInt() }
 
     private val startingPoints = board.filterValues { value -> value == 0 }.keys
     private val edges = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
