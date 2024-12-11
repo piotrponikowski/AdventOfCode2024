@@ -11,7 +11,7 @@ class Day6(input: List<String>) {
 
     fun part2() = visitedPositions()
         .filter { possibleObstacle -> possibleObstacle != startingState.position }
-        .count { possibleObstacle -> !path(possibleObstacle).second }
+        .count { possibleObstacle -> path(possibleObstacle).let { (_, loop) -> loop } }
 
     private fun visitedPositions() = path()
         .let { (visitedStates, _) -> visitedStates.map { state -> state.position } }.toSet()
@@ -31,7 +31,7 @@ class Day6(input: List<String>) {
             currentState = nextState
         }
 
-        return visitedStates to (currentState.position !in board.keys)
+        return visitedStates to (currentState.position in board.keys)
     }
 
     data class State(val position: Point, val direction: Direction) {
