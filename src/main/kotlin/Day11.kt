@@ -1,33 +1,15 @@
 class Day11(input: String) {
 
-    private val startingStones = input
-        .split(" ")
-        .map { it.toLong() }
-        .associateWith { 1L }
+    private val startingStones = input.split(" ")
+        .map { stone -> stone.toLong() }.associateWith { 1L }
 
-    fun part1():Long {
-        var currentStones = startingStones
-        println(currentStones)
+    fun part1() = solve(25)
 
-        (0..<25).forEach {
-            currentStones = blink(currentStones)
-            println(currentStones.map { it.value }.sum())
-        }
-        
-        return currentStones.map { it.value }.sum()
-    }
+    fun part2() = solve(75)
 
-    fun part2():Long {
-        var currentStones = startingStones
-        println(currentStones)
-
-        (0..<75).forEach {
-            currentStones = blink(currentStones)
-            println()
-        }
-        
-        return currentStones.map { it.value }.sum()
-    }
+    private fun solve(steps: Int) = (0..<steps)
+        .fold(startingStones) { currentStones, _ -> blink(currentStones) }
+        .map { (_, count) -> count }.sum()
 
     private fun blink(stones: Map<Long, Long>): Map<Long, Long> {
         val nextStones = mutableMapOf<Long, Long>()
