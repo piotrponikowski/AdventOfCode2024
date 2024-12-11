@@ -2,44 +2,46 @@ class Day7(input: List<String>) {
 
     private val equations = input
         .map { line -> line.split(": ") }
-        .map { (expectedResult, numbers) -> expectedResult to numbers.split(" ") }
-        .map { (expectedResult, numbers) -> expectedResult.toLong() to numbers.map { number -> number.toLong() } }
-        .map { (expectedResult, numbers) -> Equation(expectedResult, numbers) }
+        .map { (result, numbers) -> result to numbers.split(" ") }
+        .map { (result, numbers) -> result.toLong() to numbers.map { number -> number.toLong() } }
+        .map { (result, numbers) -> Equation(result, numbers) }
+
+    private val basicOperations = listOf(Operation.ADD, Operation.MULTIPLY)
+    private val allOperations = listOf(Operation.ADD, Operation.MULTIPLY, Operation.JOIN)
 
     fun part1() = equations
-        .filter { equation -> canSolve(equation, listOf(::plus, ::times)) }
-        .sumOf { equation -> equation.expectedResult }
+        .filter { equation -> canSolve(equation, basicOperations) }
+        .sumOf { equation -> equation.result }
 
     fun part2() = equations
-        .filter { equation -> canSolve(equation, listOf(::plus, ::times, ::join)) }
-        .sumOf { equation -> equation.expectedResult }
+        .filter { equation -> canSolve(equation, allOperations) }
+        .sumOf { equation -> equation.result }
 
-    private fun canSolve(
-        equation: Equation,
-        operations: List<(Long, Long) -> Long>,
-        results: List<Long> = emptyList(),
-        index: Int = 0
-    ): Boolean {
-        return if (index == 0) {
-            canSolve(equation, operations, results + equation.numbers.first(), 1)
-        } else if (index < equation.numbers.size) {
-            val currentNumber = equation.numbers[index]
+    private fun canSolve(equation: Equation, operations: List<Operation>) =
+        canSolve(equation, operations, listOf(equation.numbers.first()), 1)
+
+    private fun canSolve(equation: Equation, operations: List<Operation>, results: List<Long>, step: Int): Boolean {
+        return if (step < equation.numbers.size) {
+            val currentNumber = equation.numbers[step]
 
             val nextResults = results
-                .flatMap { result -> operations.map { operation -> operation.invoke(result, currentNumber) } }
-                .filter { result -> result <= equation.expectedResult }
+                .flatMap { result -> operations.map { operation -> calculate(operation, result, currentNumber) } }
+                .filter { result -> result <= equation.result }
 
-            canSolve(equation, operations, nextResults, index + 1)
+            canSolve(equation, operations, nextResults, step + 1)
         } else {
-            results.any { result -> result == equation.expectedResult }
+            results.any { result -> result == equation.result }
         }
     }
 
-    data class Equation(val expectedResult: Long, val numbers: List<Long>)
+    private fun calculate(operation: Operation, number1: Long, number2: Long) =
+        when (operation) {
+            Operation.ADD -> number1 + number2
+            Operation.MULTIPLY -> number1 * number2
+            Operation.JOIN -> (number1.toString() + number2.toString()).toLong()
+        }
 
-    private fun plus(number1: Long, number2: Long) = number1 + number2
+    enum class Operation { ADD, MULTIPLY, JOIN }
 
-    private fun times(number1: Long, number2: Long) = number1 * number2
-
-    private fun join(number1: Long, number2: Long) = (number1.toString() + number2.toString()).toLong()
+    data class Equation(val result: Long, val numbers: List<Long>)
 }
