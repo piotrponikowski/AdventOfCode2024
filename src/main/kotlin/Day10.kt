@@ -38,7 +38,37 @@ class Day10(input: List<String>) {
         return points.toSet().size
     }
 
-    fun part2() = 2
+    fun part2() {
+        println(board)
+
+        val starts = board.filterValues { it == 0 }.keys
+        println(starts)
+
+        val result = starts.map { score2(it) }.sum()
+        println(result)
+    }
+
+    private fun score2(start: Point):Int {
+        var points = listOf(start)
+
+        (1..9).forEach { value ->
+            val nextPoints = mutableListOf<Point>()
+
+            points.forEach { point ->
+                edges.forEach { direction ->
+                    val neighbour = point + direction
+                    val edgeValue = board[neighbour]
+                    if(edgeValue == value) {
+                        nextPoints += neighbour
+                    }
+                }
+            }
+
+            points = nextPoints
+        }
+
+        return points.size
+    }
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
@@ -49,9 +79,9 @@ fun main() {
     val realInput = readLines("day10.txt")
     val exampleInput = readLines("day10.txt", true)
 
-    val r1 = Day10(exampleInput).part1()
+    val r1 = Day10(exampleInput).part2()
     println(r1)
 
-    val r2 = Day10(realInput).part1()
+    val r2 = Day10(realInput).part2()
     println(r2)
 }
