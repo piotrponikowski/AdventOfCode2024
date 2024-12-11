@@ -2,45 +2,20 @@ class Day4(input: List<String>) {
 
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
-    
-    fun part1():Int {
-        var result = 0
-        board.keys.forEach { point ->
-            Direction.entries.forEach { direction ->
-                if(check(point, direction)) {
-                    result += 1
-                }
-            }
-        }
-        
-        return result
-    }
 
-    fun part2():Int {
-        var result = 0
-        board.keys.forEach { point ->
-            var temp = 0
-            
-            Direction2.entries.forEach { direction ->
-                if(check2(point, direction)) {
-                    temp += 1
-                }
-            }
-            
-            if(temp == 2) {
-                result += 1
-            }
-        }
+    fun part1() = board.keys
+        .sumOf { point -> Direction.entries.count { direction -> check(point, direction) } }
 
-        return result
-    }
+    fun part2() = board.keys
+        .map { point -> Direction.corners().count { direction -> check2(point, direction) } }
+        .count { count -> count == 2 }
 
-    private fun check(start: Point, direction: Direction):Boolean {
+    private fun check(start: Point, direction: Direction): Boolean {
         val xp = start
         val mp = xp + direction
         val ap = mp + direction
         val sp = ap + direction
-        
+
         val x = board[xp]
         val m = board[mp]
         val a = board[ap]
@@ -49,35 +24,32 @@ class Day4(input: List<String>) {
         return x == 'X' && m == 'M' && a == 'A' && s == 'S'
     }
 
-    private fun check2(start: Point, direction: Direction2):Boolean {
+    private fun check2(start: Point, direction: Direction): Boolean {
         val mp = start - direction
         val ap = mp + direction
         val sp = ap + direction
-        
+
         val m = board[mp]
         val a = board[ap]
         val s = board[sp]
 
         return m == 'M' && a == 'A' && s == 'S'
     }
-    
-    
+
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Direction) = Point(x + other.x, y + other.y)
 
-        operator fun plus(other: Direction2) = Point(x + other.x, y + other.y)
-
-        operator fun minus(other: Direction2) = Point(x - other.x, y - other.y)
+        operator fun minus(other: Direction) = Point(x - other.x, y - other.y)
     }
 
     enum class Direction(val x: Int, val y: Int) {
         L(-1, 0), R(1, 0), U(0, -1), D(0, 1),
-        LU(-1, -1), LD(-1,1), RU(1,-1), RD(1, 1)
-    }
+        LU(-1, -1), LD(-1, 1), RU(1, -1), RD(1, 1);
 
-    enum class Direction2(val x: Int, val y: Int) {
-        LU(-1, -1), LD(-1,1), RU(1,-1), RD(1, 1)
+        companion object {
+            fun corners() = listOf(LU, LD, RU, RD)
+        }
     }
 }
 
