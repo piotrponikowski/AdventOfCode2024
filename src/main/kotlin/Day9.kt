@@ -1,127 +1,54 @@
-import java.math.BigInteger
-
 class Day9(input: String) {
 
-    private val digits = input.toCharArray().map { it.toString().toInt() }
+    private val digits = input.toCharArray().map { symbol -> symbol.toString().toInt() }
 
-    fun part1() {
-        val data = mutableListOf<Int?>()
-        var space = true
-        var id = 0
+    private val startingData = digits
+        .mapIndexed { index, digit -> digit to (if (index % 2 == 0) index / 2 else null) }
+        .flatMap { (count, value) -> (0..<count).map { value } }
+        .toTypedArray()
 
-        digits.forEach { digit ->
-            if (space) {
-                (0..<digit).forEach { _ ->
-                    data += id
-                }
-                id += 1
-                space = false
-            } else {
-                (0..<digit).forEach { _ ->
-                    data += null
-                }
-                space = true
-            }
-        }
-        println(data)
+    fun part1(): Long {
+        val data = startingData.copyOf()
 
-        val newData = data
-        while (true) {
-            val index1 = newData.indexOfFirst { it == null }
-            val index2 = newData.indexOfLast { it != null }
-            if (index2 > index1) {
-                val val1 = newData[index1]
-                val val2 = newData[index2]
+        var spaceIndex = findNextSpace(data, 0)
+        var dataIndex = findPrevData(data, data.size - 1)
 
-                newData[index1] = val2
-                newData[index2] = val1
-            } else {
-                break
-            }
-        }
-        println(newData.toList().map { it ?: '.' }.joinToString(""))
-        
-        var result = BigInteger.ZERO
-        newData.filterNotNull().forEachIndexed { index, c ->
-            result += index.toBigInteger() * c.toBigInteger()
+        while (spaceIndex < dataIndex) {
+            val dataId = data[dataIndex]
+            data[spaceIndex] = dataId
+            data[dataIndex] = null
+
+            spaceIndex = findNextSpace(data, spaceIndex)
+            dataIndex = findPrevData(data, dataIndex)
         }
 
-        println(result)
+        return checksum(data)
     }
 
-    fun part2() {
-        val data = mutableListOf<Int?>()
-        var space = true
-        var id = 0
+    fun part2() = 2
 
-        digits.forEach { digit ->
-            if (space) {
-                (0..<digit).forEach { _ ->
-                    data += id
-                }
-                id += 1
-                space = false
-            } else {
-                (0..<digit).forEach { _ ->
-                    data += null
-                }
-                space = true
-            }
+    private fun findNextSpace(data: Array<Int?>, fromIndex: Int) =
+        findNext(data, fromIndex) { dataId -> dataId == null }
+
+    private fun findPrevData(data: Array<Int?>, fromIndex: Int) =
+        findPrev(data, fromIndex) { dataId -> dataId != null }
+
+    private fun findNext(data: Array<Int?>, fromIndex: Int, condition: (Int?) -> Boolean): Int {
+        var currentIndex = fromIndex
+        while (!condition(data[currentIndex])) {
+            currentIndex++
         }
-        println(data.toList().map { it ?: '.' }.joinToString(""))
-
-
-        val newData = data
-        val maxId = newData.filterNotNull().maxOf { it }
-
-        (maxId downTo 0).forEach { currentId ->
-            println("Current ID = $currentId")
-      
-            val dataStart = newData.indexOfFirst { it == currentId }
-            val dataEnd = newData.indexOfLast { it == currentId }
-            val dataSize = (dataEnd - dataStart) + 1
-            
-            val spaceStart = newData
-                .windowed(dataSize)
-                .mapIndexed { index, ints -> index to ints }
-                .filter { (index, _) -> index < dataStart }
-                .find { (_, ints) -> ints.all { it == null } }?.first
-            
-            if(spaceStart != null) {
-                //println("Moving $currentId")
-
-                (0..<dataSize).forEach { offset ->
-                    newData[dataStart + offset] = null
-                    newData[spaceStart + offset] = currentId
-                }
-
-                //println(data.toList().map { it ?: '.' }.joinToString(""))
-            }
-        }
-        
-        
-        println(newData.toList().map { it ?: '.' }.joinToString(""))
-
-        var result = BigInteger.ZERO
-        newData.forEachIndexed { index, c ->
-            if(c != null) {
-                result += index.toBigInteger() * c.toBigInteger()
-            }
-        }
-
-        println(result)
+        return currentIndex
     }
-}
 
-fun main() {
-    val realInput = readText("day9.txt")
-    val exampleInput = readText("day9.txt", true)
+    private fun findPrev(data: Array<Int?>, fromIndex: Int, condition: (Int?) -> Boolean): Int {
+        var currentIndex = fromIndex
+        while (!condition(data[currentIndex])) {
+            currentIndex--
+        }
+        return currentIndex
+    }
 
-    //6242766523059
-    
-    val r1 = Day9(exampleInput).part2()
-    println(r1)
-
-    val r2 = Day9(realInput).part2()
-    println(r2)
+    private fun checksum(data: Array<Int?>) = data
+        .foldIndexed(0L) { index, result, dataId -> result + (index * (dataId ?: 0)) }
 }
