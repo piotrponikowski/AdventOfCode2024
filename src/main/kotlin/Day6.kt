@@ -6,7 +6,7 @@ class Day6(input: List<String>) {
     private val startPosition = board.entries.first { it.value == '^' }.key
     private val startDirection = Direction.U
 
-    fun part1() {
+    fun part1(): Int {
         println(board)
         println(startPosition)
 
@@ -27,13 +27,10 @@ class Day6(input: List<String>) {
         }
 
         println(visited)
-        println(visited.size)
+        return visited.size
     }
 
-    fun part2() {
-        val result = board.entries.filter { it.value == '.' }.count { !canEscape(it.key) }
-        println(result)
-    }
+    fun part2() = board.entries.filter { it.value == '.' }.count { !canEscape(it.key) }
 
     fun canEscape(block: Point): Boolean {
         val visited = mutableSetOf<Pair<Point, Direction>>()
@@ -54,7 +51,7 @@ class Day6(input: List<String>) {
                 position = nextPosition
             }
         }
-        
+
         return position !in board.keys
     }
 
@@ -73,15 +70,4 @@ class Day6(input: List<String>) {
             L -> U
         }
     }
-}
-
-fun main() {
-    val realInput = readLines("day6.txt")
-    val exampleInput = readLines("day6.txt", true)
-
-    val r1 = Day6(exampleInput).part2()
-    println(r1)
-
-    val r2 = Day6(realInput).part2()
-    println(r2)
 }
