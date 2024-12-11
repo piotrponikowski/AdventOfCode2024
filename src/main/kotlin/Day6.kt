@@ -7,16 +7,16 @@ class Day6(input: List<String>) {
     private val startingPosition = board.entries.first { (_, symbol) -> symbol == '^' }.key
     private val startingState = State(startingPosition, Direction.U)
 
-    fun part1() = path().size
+    fun part1() = visitedPositions().size
 
-    fun part2() = path()
+    fun part2() = visitedPositions()
         .filter { possibleObstacle -> possibleObstacle != startingState.position }
-        .count { possibleObstacle -> !solve(possibleObstacle).second }
+        .count { possibleObstacle -> !path(possibleObstacle).second }
 
-    private fun path() = solve()
+    private fun visitedPositions() = path()
         .let { (visitedStates, _) -> visitedStates.map { state -> state.position } }.toSet()
 
-    private fun solve(additionalObstacle: Point? = null): Pair<Set<State>, Boolean> {
+    private fun path(additionalObstacle: Point? = null): Pair<Set<State>, Boolean> {
         val visitedStates = mutableSetOf<State>()
         var currentState = startingState
 
