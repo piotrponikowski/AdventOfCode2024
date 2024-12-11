@@ -7,8 +7,7 @@ class Day6(input: List<String>) {
     private val startingPosition = board.entries.first { (_, symbol) -> symbol == '^' }.key
     private val startingState = State(startingPosition, Direction.U)
 
-    fun part1() = path()
-        .size
+    fun part1() = path().size
 
     fun part2() = path()
         .filter { possibleObstacle -> possibleObstacle != startingState.position }
