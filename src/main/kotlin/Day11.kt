@@ -15,21 +15,25 @@ class Day11(input: String) {
         val nextStones = mutableMapOf<Long, Long>()
 
         stones.forEach { (stone, count) ->
-            if (stone == 0L) {
-                nextStones[1] = (nextStones[1] ?: 0) + count
-            } else if (stone.toString().length % 2 == 0) {
-                val splitBy = stone.toString().length / 2
-                val stone1 = stone.toString().take(splitBy).toLong()
-                val stone2 = stone.toString().takeLast(splitBy).toLong()
-
-                nextStones[stone1] = (nextStones[stone1] ?: 0) + count
-                nextStones[stone2] = (nextStones[stone2] ?: 0) + count
-            } else {
-                val newStone = stone * 2024
-                nextStones[newStone] = (nextStones[newStone] ?: 0) + count
+            updateStone(stone).forEach { newStone ->
+                val currentCount = nextStones[newStone] ?: 0
+                nextStones[newStone] = currentCount + count
             }
         }
 
         return nextStones
+    }
+
+    private fun updateStone(stone: Long): List<Long> {
+        return if (stone == 0L) {
+            listOf(1L)
+        } else if (stone.toString().length % 2 == 0) {
+            val splitSize = stone.toString().length / 2
+            val stone1 = stone.toString().take(splitSize).toLong()
+            val stone2 = stone.toString().takeLast(splitSize).toLong()
+            listOf(stone1, stone2)
+        } else {
+            listOf(stone * 2024)
+        }
     }
 }
