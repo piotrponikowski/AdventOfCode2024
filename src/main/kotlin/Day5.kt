@@ -2,7 +2,7 @@ class Day5(input: List<List<String>>) {
 
     private val rules = input.first()
         .map { line -> line.split("|") }
-        .map { (rule1, rule2) -> rule1.toInt() to rule2.toInt() }
+        .map { (page1, page2) -> page1.toInt() to page2.toInt() }
 
     private val updates = input.last()
         .map { line -> line.split(",").map { page -> page.toInt() } }
@@ -18,14 +18,14 @@ class Day5(input: List<List<String>>) {
 
     private fun sort(update: List<Int>) = update.sortedWith { page1, page2 ->
         when {
-            isMatchingAnyRule(page1, page2) -> -1
-            isMatchingAnyRule(page2, page1) -> 1
+            arePagesMatchingAnyRule(page1, page2) -> -1
+            arePagesMatchingAnyRule(page2, page1) -> 1
             else -> 0
         }
     }
 
-    private fun isMatchingAnyRule(page1: Int, page2: Int) =
-        rules.any { (rule1, rule2) -> rule1 == page1 && rule2 == page2 }
+    private fun arePagesMatchingAnyRule(page1: Int, page2: Int) =
+        rules.any { (rulePage1, rulePage2) -> rulePage1 == page1 && rulePage2 == page2 }
 
     private fun isUpdateCorrect(update: List<Int>) = rules
         .map { (page1, page2) -> update.indexOf(page1) to update.indexOf(page2) }
