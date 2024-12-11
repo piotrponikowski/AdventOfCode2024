@@ -4,16 +4,15 @@ class Day5(input: List<List<String>>) {
         .map { line -> line.split("|") }
         .map { (page1, page2) -> page1.toInt() to page2.toInt() }
 
-    private val updates = input.last()
-        .map { line -> line.split(",").map { page -> page.toInt() } }
+    private val updates = input.last().map { line -> line.split(",").map { page -> page.toInt() } }
+    private val sortedUpdates = updates.map { update -> sort(update) }
 
-    fun part1() = updates
-        .filter { update -> isUpdateCorrect(update) }
+    fun part1() = sortedUpdates
+        .filter { update -> update in updates }
         .sumOf { update -> update[update.size / 2] }
 
-    fun part2() = updates
-        .filter { update -> !isUpdateCorrect(update) }
-        .map { update -> sort(update) }
+    fun part2() = sortedUpdates
+        .filter { update -> update !in updates }
         .sumOf { update -> update[update.size / 2] }
 
     private fun sort(update: List<Int>) = update.sortedWith { page1, page2 ->
@@ -26,8 +25,4 @@ class Day5(input: List<List<String>>) {
 
     private fun arePagesMatchingAnyRule(page1: Int, page2: Int) =
         rules.any { (rulePage1, rulePage2) -> rulePage1 == page1 && rulePage2 == page2 }
-
-    private fun isUpdateCorrect(update: List<Int>) = rules
-        .map { (page1, page2) -> update.indexOf(page1) to update.indexOf(page2) }
-        .all { (index1, index2) -> index1 == -1 || index2 == -1 || index1 <= index2 }
 }
