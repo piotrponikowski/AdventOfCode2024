@@ -3,71 +3,52 @@ class Day8(input: List<String>) {
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
 
-    private val letters = board.filterValues { it != '.' }
-    private val distinctLetters = letters.values.toSet()
+    private val antennas = board
+        .filterValues { symbol -> symbol != '.' }
+        .map { (position, frequency) -> Antenna(position, frequency) }
 
-    fun part1():Int {
-        val solutions = mutableSetOf<Point>()
+    fun part1() = solve(::nextPosition)
 
-        distinctLetters.forEach { letter ->
-            val positions = letters.filterValues { it == letter }.keys
+    fun part2() = solve(::allPositions)
 
-            positions.forEach { position1 ->
-                positions.forEach { position2 ->
-                    if (position1 != position2) {
-                        val dx = position2.x - position1.x
-                        val dy = position2.y - position1.y
+    private fun solve(searchMethod: (Point, Point) -> List<Point>) = antennas
+        .groupBy { antenna -> antenna.frequency }.values
+        .map { group -> group.map { antenna -> antenna.position } }
+        .flatMap { positions -> findAntiNodes(positions, searchMethod) }
+        .toSet().size
 
-                        val point1 = Point(position1.x - dx, position1.y - dy)
-                        val point2 = Point(position2.x + dx, position2.y + dy)
-
-                        solutions += point1
-                        solutions += point2
-
-                    }
-                }
-            }
-        }
-        
-        val solutions2 = solutions.filter { s -> s in board.keys }
-        return solutions2.size
-    }
-
-    fun part2():Int {
-        val solutions = mutableSetOf<Point>()
-
-        distinctLetters.forEach { letter ->
-            val positions = letters.filterValues { it == letter }.keys
-
-            positions.forEach { position1 ->
-                positions.forEach { position2 ->
-                    if (position1 != position2) {
-                        val dx = position2.x - position1.x
-                        val dy = position2.y - position1.y
-                        
-                        val newSolutions = mutableSetOf<Point>()
-                        
-                        var newPosition = position1
-                        while (newPosition in board.keys){
-                            newPosition = Point(newPosition.x - dx, newPosition.y - dy)
-                            newSolutions += newPosition
-                        }
-
-                        newPosition = position1
-                        while (newPosition in board.keys){
-                            newPosition = Point(newPosition.x + dx, newPosition.y + dy)
-                            newSolutions += newPosition
-                        }
-                        
-                        solutions += newSolutions
-                    }
+    private fun findAntiNodes(positions: List<Point>, searchMethod: (Point, Point) -> List<Point>) =
+        positions.flatMapIndexed { index1, position1 ->
+            positions.flatMapIndexed { index2, position2 ->
+                if (index2 > index1) {
+                    searchMethod(position1, position2) + searchMethod(position2, position1)
+                } else {
+                    emptyList()
                 }
             }
         }
 
-        val solutions2 = solutions.filter { s -> s in board.keys }
-        return solutions2.size
+    private fun nextPosition(position1: Point, position2: Point): List<Point> {
+        val nextPosition = position1 + (position1 - position2)
+        return if (nextPosition in board.keys) listOf(nextPosition) else emptyList()
     }
 
-    data class Point(val x: Int, val y: Int)
+    private fun allPositions(position1: Point, position2: Point): List<Point> {
+        var currentPosition = position1
+        val positions = mutableListOf<Point>()
+
+        while (currentPosition in board.keys) {
+            positions += currentPosition
+            currentPosition += (position1 - position2)
+        }
+
+        return positions
+    }
+
+    data class Antenna(val position: Point, val frequency: Char)
+
+    data class Point(val x: Int, val y: Int) {
+        operator fun plus(other: Point) = Point(x + other.x, y + other.y)
+        operator fun minus(other: Point) = Point(x - other.x, y - other.y)
+    }
 }
