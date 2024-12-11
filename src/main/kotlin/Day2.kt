@@ -4,8 +4,8 @@ class Day2(input: List<String>) {
 
     fun part1() = reports.count { report -> isSafe(report) }
 
-    fun part2() = reports.map { report -> splitLevels(report) }
-        .count { splitReports -> splitReports.any { report -> isSafe(report) } }
+    fun part2() = reports.map { report -> fixLevels(report) }
+        .count { fixedReports -> fixedReports.any { fixedReport -> isSafe(fixedReport) } }
 
     private fun isSafe(report :List<Int>) = isIncreasing(report) || isDecreasing(report)
     
@@ -15,6 +15,6 @@ class Day2(input: List<String>) {
     private fun isDecreasing(report: List<Int>) = report.windowed(2)
         .all { (levelPrev, levelNext) -> levelPrev > levelNext && levelPrev - levelNext in 1..3 }
 
-    private fun splitLevels(report: List<Int>) =
+    private fun fixLevels(report: List<Int>) =
         report.indices.map { index -> report.filterIndexed { other, _ -> index != other } }
 }
