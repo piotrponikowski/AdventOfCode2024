@@ -1,29 +1,24 @@
-class Day3(val input: String) {
+class Day3(private val input: String) {
 
-    private val PATTERN = Regex("""mul\((\d+),(\d+)\)""")
-    private val PATTERN2 = Regex("""mul\((\d+),(\d+)\)|do\(\)|don't\(\)""")
+    private val pattern = Regex("""mul\((\d+),(\d+)\)|do\(\)|don't\(\)""")
 
-    fun part1(): Int {
-        println(input)
-        val result = PATTERN.findAll(input).map { it.destructured }.map { (a, b) -> a.toInt() * b.toInt() }.sum()
-        return result
-    }
+    fun part1() = pattern.findAll(input)
+        .filter { group -> group.value.startsWith("mul") }
+        .map { group -> computeGroup(group) }
+        .sum()
 
-    fun part2(): Int {
-        val instructions = PATTERN2.findAll(input).map { it.value }.toList()
-        var result = 0
-        var enabled = true
-        instructions.forEach { i ->
-            if (i == "do()") {
-                enabled = true
-            } else if (i == "don't()") {
-                enabled = false
-            } else if (enabled) {
-                println(i)
-                val (a, b) = PATTERN.matchEntire(i)!!.destructured
-                result += (a.toInt() * b.toInt())
+    fun part2() = pattern.findAll(input)
+        .fold(0 to true) { (result, enabled), group ->
+            when (group.value) {
+                "do()" -> result to true
+                "don't()" -> result to false
+                else -> when (enabled) {
+                    true -> result + computeGroup(group) to true
+                    false -> result to false
+                }
             }
-        }
-        return result
-    }
+        }.let { (result, _) -> result }
+
+    private fun computeGroup(match: MatchResult) = match.destructured
+        .let { (value1, value2) -> value1.toInt() * value2.toInt() }
 }
