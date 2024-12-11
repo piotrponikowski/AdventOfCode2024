@@ -12,16 +12,16 @@ class Day11(input: String) {
         .map { (_, count) -> count }.sum()
 
     private fun blink(stones: Map<Long, Long>): Map<Long, Long> {
-        val nextStones = mutableMapOf<Long, Long>()
+        val newStones = mutableMapOf<Long, Long>()
 
         stones.forEach { (stone, count) ->
             updateStone(stone).forEach { newStone ->
-                val currentCount = nextStones[newStone] ?: 0
-                nextStones[newStone] = currentCount + count
+                val currentCount = newStones[newStone] ?: 0
+                newStones[newStone] = currentCount + count
             }
         }
 
-        return nextStones
+        return newStones
     }
 
     private fun updateStone(stone: Long): List<Long> {
