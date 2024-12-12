@@ -1,94 +1,104 @@
-import kotlin.math.abs
-
 class Day12(input: List<String>) {
 
     private val board = input
-        .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x.toLong(), y.toLong()) to symbol } }.toMap()
+        .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
 
-    private val edges = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
-
-    private val plants = board.values.toSet()
+    fun part1() = allAreas().fold(0) { result, area -> result + (perimeter(area).size * area.size) }
     
-    fun part1() {
-        //14047374
-        //1377008
-        
-        println(board)
-        println(plants)
-        var result = 0L
+    fun part2() = allAreas().fold(0) { result, area -> result + (corners(area).size * area.size) }
 
+    private fun allAreas(): List<Set<Point>> {
         val visited = mutableSetOf<Point>()
+        val result = mutableListOf<Set<Point>>()
 
-        board.keys.forEach {  startingPoint ->
-            if(startingPoint !in visited) {
-                val plant = board[startingPoint]
-                val perimeter = mutableListOf<Point>()
-
-                val area = areaPoints(startingPoint)
+        board.keys.forEach { point ->
+            if (point !in visited) {
+                val area = area(point)
                 visited += area
-                println("$plant ${area.size}")
-
-                area.forEach { plantPosition ->
-                    edges.forEach { edge ->
-                        val neighbour = plantPosition + edge
-                        if (board[neighbour] != plant) {
-                            perimeter += neighbour
-                        }
-                    }
-                }
-
-                result += (area.size * perimeter.size)
+                result.add(area)
             }
         }
 
-        println(result)
+        return result
     }
-    
-    private fun areaPoints(start: Point):Set<Point> {
-        val plantSymbol = board[start]
-        val visited = mutableSetOf<Point>()
-        val pointsToCheck = mutableListOf(start)
 
-        
+    private fun corners(area: Set<Point>): List<Point> = Direction.neighbours
+        .flatMap { (dir1, dir2) -> area.filter { point -> isCorner(point, dir1, dir2) } }
+
+//        result += area.filter { point -> isOpenCorner(point, Direction.U, Direction.L) }
+//        result += area.filter { point -> isOpenCorner(point, Direction.U, Direction.R) }
+//        result += area.filter { point -> isOpenCorner(point, Direction.D, Direction.L) }
+//        result += area.filter { point -> isOpenCorner(point, Direction.D, Direction.R) }
+//
+//        result += area.filter { point -> isClosedCorner(point, Direction.U, Direction.L) }
+//        result += area.filter { point -> isClosedCorner(point, Direction.U, Direction.R) }
+//        result += area.filter { point -> isClosedCorner(point, Direction.D, Direction.L) }
+//        result += area.filter { point -> isClosedCorner(point, Direction.D, Direction.R) }
+
+//        result += area.filter { point -> board[point + Direction.U] != board[point] && board[point + Direction.L] != board[point] }
+//        result += area.filter { point -> board[point + Direction.U] != board[point] && board[point + Direction.R] != board[point] }
+//        result += area.filter { point -> board[point + Direction.D] != board[point] && board[point + Direction.L] != board[point] }
+//        result += area.filter { point -> board[point + Direction.D] != board[point] && board[point + Direction.R] != board[point] }
+
+//        result += area.filter { point -> board[point + Direction.U + Direction.L] != board[point] && board[point + Direction.U] == board[point] && board[point + Direction.L] == board[point] }
+//        result += area.filter { point -> board[point + Direction.U + Direction.R] != board[point] && board[point + Direction.U] == board[point] && board[point + Direction.R] == board[point] }
+//        result += area.filter { point -> board[point + Direction.D + Direction.L] != board[point] && board[point + Direction.D] == board[point] && board[point + Direction.L] == board[point] }
+//        result += area.filter { point -> board[point + Direction.D + Direction.R] != board[point] && board[point + Direction.D] == board[point] && board[point + Direction.R] == board[point] }
+
+//        println(result)
+//        return result
+//    }
+
+    private fun isCorner(p: Point, dir1: Direction, dir2: Direction) =
+        isOpenCorner(p, dir1, dir2) || isClosedCorner(p, dir1, dir2)
+
+    private fun isOpenCorner(p: Point, dir1: Direction, dir2: Direction) =
+        board[p + dir1] != board[p] && board[p + dir2] != board[p]
+
+    private fun isClosedCorner(p: Point, dir1: Direction, dir2: Direction) =
+        board[p + dir1 + dir2] != board[p] && board[p + dir1] == board[p] && board[p + dir2] == board[p]
+
+    private fun area(startingPoint: Point): Set<Point> {
+        val result = mutableSetOf<Point>()
+        val pointsToCheck = mutableListOf(startingPoint)
+
         while (pointsToCheck.isNotEmpty()) {
-            val point = pointsToCheck.removeFirst()
-            if(plantSymbol == board[point] && point !in visited) {
-                visited += point
+            val currentPoint = pointsToCheck.removeFirst()
+            if (currentPoint !in result && board[startingPoint] == board[currentPoint]) {
+                result += currentPoint
 
-                pointsToCheck += edges.map { edge -> edge + point }.filter { newPoint -> newPoint !in visited }
+                pointsToCheck += Direction.entries
+                    .map { edge -> currentPoint + edge }
+                    .filter { nextPoint -> nextPoint !in result }
             }
         }
-        return visited.toSet()
+
+        return result
     }
 
-    fun part2() = 2
+    private fun perimeter(areaPoints: Set<Point>): List<Point> {
+        val perimeter = mutableListOf<Point>()
 
-    private fun calculateArea(points: List<Point>): Long {
-        val pairs = points.reversed().windowed(2)
-
-        val sum1 = pairs.sumOf { (curr, next) -> curr.x * next.y }
-        val sum2 = pairs.sumOf { (curr, next) -> curr.y * next.x }
-        val area = abs(sum2 - sum1) / 2
-
-        val length = pairs.sumOf { (curr, next) -> abs(next.x - curr.x) + abs(next.y - curr.y) }
-
-        return area + length / 2 + 1
+        areaPoints.forEach { point ->
+            Direction.entries.forEach { edge ->
+                val neighbour = point + edge
+                if (board[neighbour] != board[point]) {
+                    perimeter += neighbour
+                }
+            }
+        }
+        return perimeter
     }
 
-    data class Point(val x: Long, val y: Long) {
-        operator fun plus(other: Point) = Point(x + other.x, y + other.y)
+    data class Point(val x: Int, val y: Int) {
+        operator fun plus(other: Direction) = Point(x + other.x, y + other.y)
     }
-}
 
-fun main() {
-    val realInput = readLines("day12.txt")
-    val exampleInput = readLines("day12.txt", true)
+    enum class Direction(val x: Int, val y: Int) {
+        L(-1, 0), R(1, 0), U(0, -1), D(0, 1);
 
-    val r1 = Day12(exampleInput).part1()
-    println(r1)
-
-    val r2 = Day12(realInput).part1()
-    println(r2)
-    
-    //14047374
+        companion object {
+            val neighbours = listOf(U to L, L to D, D to R, R to U)
+        }
+    }
 }
