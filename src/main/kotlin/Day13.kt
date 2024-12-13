@@ -11,12 +11,12 @@ class Day13(input: List<List<String>>) {
     private fun canWin(machine: Machine): Long {
         val (ax, ay) = machine.buttonA
         val (bx, by) = machine.buttonB
-        val (px, py) = machine.target
+        val (tx, ty) = machine.target
 
-        val b = (px * ay - py * ax) / (ay * bx - by * ax)
-        val a = (px * by - py * bx) / (by * ax - bx * ay)
+        val b = (tx * ay - ty * ax) / (ay * bx - by * ax)
+        val a = (tx * by - ty * bx) / (by * ax - bx * ay)
         
-        val isSolved = ax * a + bx * b == px && ay * a + by * b == py
+        val isSolved = ax * a + bx * b == tx && ay * a + by * b == ty
         
         return if(isSolved) 3 * a + b else 0
     }
