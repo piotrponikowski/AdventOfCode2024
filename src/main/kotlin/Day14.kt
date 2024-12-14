@@ -40,6 +40,27 @@ class Day14(input: List<String>) {
         //87904138
     }
 
+    fun part2() {
+        println(robots)
+
+        var newRobots = robots
+        var index = 0
+
+        
+        while(!hasTree(newRobots)) {
+            newRobots = newRobots.map { moveRobot(it, 1) }
+         
+            index++
+        }
+    
+        print(newRobots)
+        println(index)
+
+        //87904138
+    }
+    
+    private fun hasTree(robots: List<Robot>) = robots.groupBy { it.position }.all { it.value.size == 1 }
+
     private fun score1(robots: List<Robot>) = robots.map { it.position }
         .filter { (x, y) -> x < maxX / 2 && y < maxY / 2 }
 
@@ -68,9 +89,6 @@ class Day14(input: List<String>) {
 
         return Robot(Point(nx, ny), robot.velocity)
     }
-
-    fun part2() = 2
-
     
     private fun print(robots: List<Robot>) {
         (minY..<maxY).forEach { y->
@@ -104,9 +122,9 @@ fun main() {
     val realInput = readLines("day14.txt")
     val exampleInput = readLines("day14.txt", true)
 
-    val r1 = Day14(exampleInput).part1()
-    println(r1)
+//    val r1 = Day14(exampleInput).part2()
+//    println(r1)
 
-    val r2 = Day14(realInput).part1()
+    val r2 = Day14(realInput).part2()
     println(r2)
 }
