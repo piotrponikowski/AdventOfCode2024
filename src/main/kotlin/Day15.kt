@@ -8,7 +8,7 @@ class Day15(input: List<List<String>>) {
 
     private val instructions = input.last().flatMap { line -> line.toCharArray().map { parseDirection(it) } }
 
-    fun part1() {
+    fun part1():Int{
         printBoard(board)
         //println(instructions)
 
@@ -22,17 +22,17 @@ class Day15(input: List<List<String>>) {
             //println(index)
         }
 
-        println(score(currentBoard))
+        return score(currentBoard)
     }
 
-    fun part2() {
+    fun part2():Int {
         //printBoard(board2)
         //println(instructions)
 
 
         var currentBoard = board2
         var index = 0
-        printBoard(currentBoard)
+        //printBoard(currentBoard)
 
         instructions.forEach { instruction ->
             currentBoard = move2(currentBoard, instruction)
@@ -42,7 +42,7 @@ class Day15(input: List<List<String>>) {
             //println(index)
         }
 
-        println(score2(currentBoard))
+        return score2(currentBoard)
     }
 
     private fun modifyLine(line: String) = line.toCharArray().flatMap {
