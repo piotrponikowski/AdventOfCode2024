@@ -1,59 +1,35 @@
+import java.lang.IllegalArgumentException
+
 class Day15(input: List<List<String>>) {
 
     private val board = input.first()
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
 
-    private val board2 = input.first()
-        .flatMapIndexed { y, line -> modifyLine(line).mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
+    private val modifiedBoard = input.first()
+        .flatMapIndexed { y, line -> modifyInput(line).mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
 
-    private val instructions = input.last().flatMap { line -> line.toCharArray().map { parseDirection(it) } }
+    private val instructions = input.last().flatMap { line -> line.map { symbol -> Direction.valueOf(symbol) } }
 
-    fun part1():Int{
-        printBoard(board)
+    fun part1() = 2
+
+    fun part2(): Int {
+        //printBoard(board2)
         //println(instructions)
 
-        var currentBoard = board
-        var index = 0
-        instructions.forEach { instruction ->
-            currentBoard = move(currentBoard, instruction)
-            //printBoard(currentBoard)
 
-            index++
+        var currentBoard = modifiedBoard
+
+        //printBoard(currentBoard)
+
+        instructions.forEach { instruction ->
+            currentBoard = move2(currentBoard, instruction)
+            //printBoard(currentBoard)
             //println(index)
         }
 
         return score(currentBoard)
     }
 
-    fun part2():Int {
-        //printBoard(board2)
-        //println(instructions)
-
-
-        var currentBoard = board2
-        var index = 0
-        //printBoard(currentBoard)
-
-        instructions.forEach { instruction ->
-            currentBoard = move2(currentBoard, instruction)
-            //printBoard(currentBoard)
-
-            index++
-            //println(index)
-        }
-
-        return score2(currentBoard)
-    }
-
-    private fun modifyLine(line: String) = line.toCharArray().flatMap {
-        when (it) {
-            '#' -> listOf('#', '#')
-            'O' -> listOf('[', ']')
-            '.' -> listOf('.', '.')
-            '@' -> listOf('@', '.')
-            else -> listOf()
-        }
-    }
 
     private fun move2(board: Map<Point, Char>, instruction: Direction): Map<Point, Char> {
         val newState = board.toMutableMap()
@@ -62,36 +38,9 @@ class Day15(input: List<List<String>>) {
 
         val nextRobotPoint = robotPosition + instruction
 
-        var boxPoints = mutableSetOf<Point>()
-        if (board[nextRobotPoint] in listOf('[', ']')) {
-            boxPoints += nextRobotPoint
-        }
-
-        while (true) {
-            val nextBoxPoints = mutableSetOf<Point>()
-
-            boxPoints.forEach { boxPoint ->
-                val symbol = board[boxPoint]
-                if (symbol == '[') {
-                    nextBoxPoints += boxPoint
-                    nextBoxPoints += (boxPoint + Direction.R)
-                } else if (symbol == ']') {
-                    nextBoxPoints += boxPoint
-                    nextBoxPoints += (boxPoint + Direction.L)
-                }
-            }
-
-            nextBoxPoints += boxPoints.map { it + instruction }.filter { board[it] in listOf('[', ']') }
-
-
-            if (nextBoxPoints == boxPoints) {
-                break
-            } else {
-                boxPoints = nextBoxPoints
-            }
-        }
+        val boxPoints = scanBoxes(board, robotPosition, instruction)
         val boxes = boxPoints.map { it to board[it]!! }
-        val canMoveBoxes = boxes.all { board[it.first+instruction] in listOf('.', '[', ']') }
+        val canMoveBoxes = boxes.all { board[it.first + instruction] in listOf('.', '[', ']') }
         if (canMoveBoxes) {
             boxes.forEach {
                 newState[it.first] = '.'
@@ -105,46 +54,35 @@ class Day15(input: List<List<String>>) {
             newState[robotPosition] = '.'
             newState[nextRobotPoint] = '@'
         }
-        
-        return newState
-    }
-
-    private fun move(board: Map<Point, Char>, instruction: Direction): Map<Point, Char> {
-        val newState = board.toMutableMap()
-
-        val robotPosition = board.entries.first { it.value == '@' }.key
-        val pointsToMove = mutableListOf<Point>()
-
-        var currentPoint = robotPosition
-        while (board[currentPoint] in listOf('@', 'O')) {
-            pointsToMove += currentPoint
-
-            currentPoint += instruction
-        }
-
-        if (board[currentPoint] == '.') {
-            val newPoints = pointsToMove.map { it + instruction }
-            val newRobot = newPoints.first()
-            val newBoxes = newPoints.drop(1)
-
-            pointsToMove.forEach { point -> newState[point] = '.' }
-            newState[newRobot] = '@'
-            newBoxes.forEach { point -> newState[point] = 'O' }
-
-        }
 
         return newState
     }
 
-    private fun score(board: Map<Point, Char>) = board
-        .filter { it.value == 'O' }
-        .map { it.key.y * 100 + it.key.x }
-        .sum()
+    private fun scanBoxes(board: Map<Point, Char>, robotPosition: Point, instruction: Direction): Set<Point> {
+        val result = mutableSetOf<Point>()
+        val pointsToScan = mutableListOf(robotPosition + instruction)
 
-    private fun score2(board: Map<Point, Char>) = board
-        .filter { it.value == '[' }
-        .map { it.key.y * 100 + it.key.x }
-        .sum()
+        while (pointsToScan.isNotEmpty()) {
+            val point = pointsToScan.removeFirst()
+            if (point in result) {
+                continue
+            }
+
+            val symbol = board[point]
+            if (symbol in listOf('O', '[', ']')) {
+                result += point
+
+                pointsToScan += point + instruction
+                if (symbol == '[') {
+                    pointsToScan += point + Direction.R
+                } else if (symbol == ']') {
+                    pointsToScan += point + Direction.L
+                }
+            }
+        }
+
+        return result
+    }
 
     private fun printBoard(board: Map<Point, Char>) {
         val minX = board.minOf { it.key.x }
@@ -161,36 +99,30 @@ class Day15(input: List<List<String>>) {
         println()
     }
 
+    private fun score(board: Map<Point, Char>) = board
+        .filterValues { symbol -> symbol in listOf('O', '[') }
+        .map { (point, _) -> point.y * 100 + point.x }
+        .sum()
 
-    private fun parseDirection(symbol: Char): Direction {
-        if (symbol == '^') return Direction.U
-        if (symbol == 'v') return Direction.D
-        if (symbol == '>') return Direction.R
-        if (symbol == '<') return Direction.L
-        throw IllegalArgumentException()
+    private fun modifyInput(line: String) = line.flatMap { symbol ->
+        when (symbol) {
+            '#' -> listOf('#', '#')
+            'O' -> listOf('[', ']')
+            '.' -> listOf('.', '.')
+            '@' -> listOf('@', '.')
+            else -> throw IllegalArgumentException()
+        }
     }
 
     data class Point(val x: Int, val y: Int) {
         operator fun plus(other: Direction) = Point(x + other.x, y + other.y)
     }
 
-    enum class Direction(val x: Int, val y: Int) {
-        L(-1, 0), R(1, 0), U(0, -1), D(0, 1);
+    enum class Direction(val symbol: Char, val x: Int, val y: Int) {
+        L('<', -1, 0), R('>', 1, 0), U('^', 0, -1), D('v', 0, 1);
+
+        companion object {
+            fun valueOf(symbol: Char) = entries.first { direction -> direction.symbol == symbol }
+        }
     }
-}
-
-fun main() {
-    val realInput = readGroups("day15.txt")
-    val exampleInput = readGroups("day15.txt", true)
-
-    val r1 = Day15(exampleInput).part2()
-    println(r1)
-
-    val r2 = Day15(realInput).part2()
-    println(r2)
-
-    //1420868
-    //9292
-    //1421171
-    //1412971
 }
