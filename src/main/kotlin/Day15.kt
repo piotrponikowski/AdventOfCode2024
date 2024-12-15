@@ -10,53 +10,34 @@ class Day15(input: List<List<String>>) {
 
     private val instructions = input.last().flatMap { line -> line.map { symbol -> Direction.valueOf(symbol) } }
 
-    fun part1() = 2
+    fun part1()  = solve(board)
 
-    fun part2(): Int {
-        //printBoard(board2)
-        //println(instructions)
+    fun part2() = solve(modifiedBoard)
 
+    private fun solve(board: Map<Point, Char>) =
+        score(instructions.fold(board) { currentBoard, instruction -> move(currentBoard, instruction) })
 
-        var currentBoard = modifiedBoard
-
-        //printBoard(currentBoard)
-
-        instructions.forEach { instruction ->
-            currentBoard = move2(currentBoard, instruction)
-            //printBoard(currentBoard)
-            //println(index)
-        }
-
-        return score(currentBoard)
-    }
-
-
-    private fun move2(board: Map<Point, Char>, instruction: Direction): Map<Point, Char> {
+    private fun move(board: Map<Point, Char>, instruction: Direction): Map<Point, Char> {
         val newState = board.toMutableMap()
-
         val robotPosition = board.entries.first { it.value == '@' }.key
 
-        val nextRobotPoint = robotPosition + instruction
-
-        val boxPoints = scanBoxes(board, robotPosition, instruction)
-        val boxes = boxPoints.map { it to board[it]!! }
-        val canMoveBoxes = boxes.all { board[it.first + instruction] in listOf('.', '[', ']') }
-        if (canMoveBoxes) {
-            boxes.forEach {
-                newState[it.first] = '.'
-            }
-            boxes.forEach {
-                newState[it.first + instruction] = it.second
-            }
+        val boxes = scanBoxes(board, robotPosition, instruction)
+        if (canMoveBoxes(board, boxes, instruction)) {
+            boxes.forEach { box -> newState[box] = '.' }
+            boxes.forEach { box -> newState[box + instruction] = board[box]!! }
         }
 
-        if (newState[nextRobotPoint] == '.') {
+        val nextRobotPosition = robotPosition + instruction
+        if (newState[nextRobotPosition] == '.') {
             newState[robotPosition] = '.'
-            newState[nextRobotPoint] = '@'
+            newState[nextRobotPosition] = '@'
         }
 
         return newState
     }
+
+    private fun canMoveBoxes(board: Map<Point, Char>, boxes: Set<Point>, instruction: Direction) = boxes
+        .all { box -> board[box + instruction] in listOf('.', 'O', '[', ']') }
 
     private fun scanBoxes(board: Map<Point, Char>, robotPosition: Point, instruction: Direction): Set<Point> {
         val result = mutableSetOf<Point>()
@@ -82,21 +63,6 @@ class Day15(input: List<List<String>>) {
         }
 
         return result
-    }
-
-    private fun printBoard(board: Map<Point, Char>) {
-        val minX = board.minOf { it.key.x }
-        val maxX = board.maxOf { it.key.x }
-        val minY = board.minOf { it.key.y }
-        val maxY = board.maxOf { it.key.y }
-
-        (minY..maxY).forEach { y ->
-            (minX..maxX).forEach { x ->
-                print(board[Point(x, y)])
-            }
-            println()
-        }
-        println()
     }
 
     private fun score(board: Map<Point, Char>) = board
