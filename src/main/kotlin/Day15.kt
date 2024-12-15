@@ -10,7 +10,7 @@ class Day15(input: List<List<String>>) {
 
     private val instructions = input.last().flatMap { line -> line.map { symbol -> Direction.valueOf(symbol) } }
 
-    fun part1()  = solve(board)
+    fun part1() = solve(board)
 
     fun part2() = solve(modifiedBoard)
 
@@ -19,9 +19,9 @@ class Day15(input: List<List<String>>) {
 
     private fun move(board: Map<Point, Char>, instruction: Direction): Map<Point, Char> {
         val newState = board.toMutableMap()
-        val robotPosition = board.entries.first { it.value == '@' }.key
+        val robotPosition = board.entries.first { (_, symbol) -> symbol == '@' }.key
 
-        val boxes = scanBoxes(board, robotPosition, instruction)
+        val boxes = findBoxes(board, robotPosition, instruction)
         if (canMoveBoxes(board, boxes, instruction)) {
             boxes.forEach { box -> newState[box] = '.' }
             boxes.forEach { box -> newState[box + instruction] = board[box]!! }
@@ -39,7 +39,7 @@ class Day15(input: List<List<String>>) {
     private fun canMoveBoxes(board: Map<Point, Char>, boxes: Set<Point>, instruction: Direction) = boxes
         .all { box -> board[box + instruction] in listOf('.', 'O', '[', ']') }
 
-    private fun scanBoxes(board: Map<Point, Char>, robotPosition: Point, instruction: Direction): Set<Point> {
+    private fun findBoxes(board: Map<Point, Char>, robotPosition: Point, instruction: Direction): Set<Point> {
         val result = mutableSetOf<Point>()
         val pointsToScan = mutableListOf(robotPosition + instruction)
 
