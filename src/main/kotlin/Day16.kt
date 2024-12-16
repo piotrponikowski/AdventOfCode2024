@@ -9,8 +9,15 @@ class Day16(input: List<String>) {
         Direction.U to listOf(Direction.U, Direction.L, Direction.R),
         Direction.D to listOf(Direction.D, Direction.L, Direction.R)
     )
+    
+    fun part1() = solve().minOfOrNull { it.score }
 
-    fun solve() {
+    fun part2() = solve().let {results-> 
+        val bestScore = results.map { it.score }.min()
+        results.filter { it.score == bestScore }.flatMap { it.states.map { it.position } }.toSet().size
+    }
+
+    private fun solve():List<Path> {
 
         val start = board.entries.first { it.value == 'S' }.key
         val end = board.entries.first { it.value == 'E' }.key
@@ -52,18 +59,7 @@ class Day16(input: List<String>) {
             currentPaths = nextPaths.toList()
         }
 
-        val bestScore = result.map { it.score }.sorted().first() 
-        println(bestScore)
-        val points = result
-            .filter { it.score == bestScore }
-            .flatMap { it.states.map { it.position } }
-            .toSet()
-
-        println(points.size)
-        
-        //val bestPath = result.first { it.score == scores.first() }
-        //bestPath.debug.forEach { println(it) }
-        //printPath(bestPath)
+        return result
     }
 
     private fun printPath(path: Path) {
@@ -83,8 +79,6 @@ class Day16(input: List<String>) {
         }
     }
 
-    fun part2() = 2
-
     data class Path(val states: List<State>, val score: Int, val debug:List<Debug>)
 
     data class State(val position: Point, val direction: Direction)
@@ -103,11 +97,11 @@ class Day16(input: List<String>) {
 
 fun main() {
     val realInput = readLines("day16.txt")
-    val exampleInput = readLines("day16.txt", true)
+    val exampleInput = readLines("day16-1.txt", true)
 
-    val r1 = Day16(exampleInput).solve()
+    val r1 = Day16(exampleInput).part1()
     println(r1)
 
-    val r2 = Day16(realInput).solve()
+    val r2 = Day16(realInput).part1()
     println(r2)
 }
