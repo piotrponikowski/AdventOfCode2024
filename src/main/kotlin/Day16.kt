@@ -3,9 +3,6 @@ class Day16(input: List<String>) {
     private val board = input
         .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
 
-    private val startPosition = board.entries.first { (_, symbol) -> symbol == 'S' }.key
-    private val endPosition = board.entries.first { (_, symbol) -> symbol == 'E' }.key
-
     fun part1() = findPaths().minOfOrNull { path -> path.score }
 
     fun part2() = findPaths()
@@ -17,26 +14,30 @@ class Day16(input: List<String>) {
         val results = mutableListOf<Path>()
         val visited = mutableMapOf<State, Int>()
 
+        val startPosition = board.entries.first { (_, symbol) -> symbol == 'S' }.key
         val startPath = Path(listOf(startPosition), Direction.R, 0)
         val currentPaths = mutableListOf(startPath)
 
         while (currentPaths.isNotEmpty()) {
             val currentPath = currentPaths.removeFirst()
             val currentPosition = currentPath.positions.last()
+            val directions = Direction.rotations(currentPath.direction)
 
-            Direction.rotations(currentPath.direction).forEach { newDirection ->
+            directions.forEach { newDirection ->
                 val newPosition = currentPosition + newDirection
                 val newScore = currentPath.score + if (currentPath.direction == newDirection) 1 else 1001
                 val newPath = Path(currentPath.positions + newPosition, newDirection, newScore)
 
-                val stateKey = State(newPosition, newDirection)
-                val stateScore = visited[stateKey] ?: Int.MAX_VALUE
-
-                if (newPosition == endPosition) {
+                if (board[newPosition] == 'E') {
                     results += newPath
-                } else if (board[newPosition] == '.' && newScore <= stateScore) {
-                    currentPaths += newPath
-                    visited[stateKey] = newScore
+                } else if (board[newPosition] == '.') {
+                    val stateKey = State(newPosition, newDirection)
+                    val stateScore = visited[stateKey] ?: Int.MAX_VALUE
+
+                    if (newScore <= stateScore) {
+                        currentPaths += newPath
+                        visited[stateKey] = newScore
+                    }
                 }
             }
         }
