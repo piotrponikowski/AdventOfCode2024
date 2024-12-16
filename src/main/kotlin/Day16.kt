@@ -27,10 +27,9 @@ class Day16(input: List<String>) {
                 val newPosition = currentPosition + newDirection
                 val newScore = currentPath.score + if (currentPath.direction == newDirection) 1 else 1001
                 val newPath = Path(currentPath.positions + newPosition, newDirection, newScore)
-
-                if (board[newPosition] == 'E') {
-                    results += newPath
-                } else if (board[newPosition] == '.') {
+                
+                val nextTile = board[newPosition]
+                if (nextTile == '.') {
                     val stateKey = State(newPosition, newDirection)
                     val stateScore = visited[stateKey] ?: Int.MAX_VALUE
 
@@ -38,6 +37,8 @@ class Day16(input: List<String>) {
                         currentPaths += newPath
                         visited[stateKey] = newScore
                     }
+                } else if (nextTile == 'E') {
+                    results += newPath
                 }
             }
         }
