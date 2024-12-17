@@ -14,7 +14,6 @@ class Day17(input: List<String>) {
     fun part1() = runProgram(registers, instructions).joinToString(",")
 
     fun part2(): Long {
-
         var registerReplacement = 0L
         var matchSize = 1
 
