@@ -52,15 +52,13 @@ class Day17(input: List<String>) {
             var jumped = false
 
             if (instruction == 0) {
-                val numerator = currentRegisters[0]
-                val denominator = 2.0.pow(comboOperand(operand, currentRegisters).toDouble()).toInt()
-                currentRegisters[0] = numerator / denominator
+                currentRegisters[0] = division(currentRegisters, operand)
 
             } else if (instruction == 1) {
-                currentRegisters[1] = currentRegisters[1].xor(operand.toLong())
+                currentRegisters[1] = currentRegisters[1].xor(operand)
 
             } else if (instruction == 2) {
-                currentRegisters[1] = comboOperand(operand, currentRegisters) % 8
+                currentRegisters[1] = modulo(currentRegisters, operand)
 
             } else if (instruction == 3) {
                 if (currentRegisters[0] > 0) {
@@ -72,17 +70,13 @@ class Day17(input: List<String>) {
                 currentRegisters[1] = currentRegisters[1].xor(currentRegisters[2])
 
             } else if (instruction == 5) {
-                output += comboOperand(operand, currentRegisters) % 8
+                output += modulo(currentRegisters, operand)
 
             } else if (instruction == 6) {
-                val numerator = currentRegisters[0]
-                val denominator = 2.0.pow(comboOperand(operand, currentRegisters).toDouble()).toLong()
-                currentRegisters[1] = numerator / denominator
+                currentRegisters[1] = division(currentRegisters, operand)
 
             } else if (instruction == 7) {
-                val numerator = currentRegisters[0]
-                val denominator = 2.0.pow(comboOperand(operand, currentRegisters).toDouble()).toInt()
-                currentRegisters[2] = numerator / denominator
+                currentRegisters[2] = division(currentRegisters, operand)
             }
 
             if (!jumped) {
@@ -92,8 +86,16 @@ class Day17(input: List<String>) {
 
         return output
     }
+    
+    private fun modulo(registers: List<Long>, operand: Long) = comboOperand(registers, operand) % 8
+    
+    private fun division(registers: List<Long>, operand: Long): Long {
+        val numerator = registers[0]
+        val denominator = 2.0.pow(comboOperand(registers, operand).toInt()).toLong()
+        return numerator / denominator
+    }
 
-    private fun comboOperand(operand: Long, registers: List<Long>): Long =
+    private fun comboOperand(registers: List<Long>, operand: Long): Long =
         when {
             operand <= 3 -> operand
             operand <= 6 -> registers[operand.toInt() - 4]
