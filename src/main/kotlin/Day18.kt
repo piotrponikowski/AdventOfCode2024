@@ -2,8 +2,6 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
 
     private val points = input.map { it.split(",").map { it.toLong() }.let { (a, b) -> Point(a, b) } }
     private val edges = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
-
-    
     
     private val maxX = if (testSpace) 6L else 70L
     private val maxY = if (testSpace) 6L else 70L
