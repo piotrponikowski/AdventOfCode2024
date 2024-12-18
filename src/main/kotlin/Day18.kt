@@ -1,7 +1,6 @@
 class Day18(input: List<String>, testSpace: Boolean = false) {
 
     private val points = input.map { line -> line.split(",") }.map { (x, y) -> Point(x.toLong(), y.toLong()) }
-
     private val edges = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
 
     private val boardSize = if (testSpace) 6L else 70L
