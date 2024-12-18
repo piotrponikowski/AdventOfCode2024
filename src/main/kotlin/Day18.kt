@@ -1,28 +1,28 @@
 class Day18(input: List<String>, testSpace: Boolean = false) {
 
-    private val points = input.map { it.split(",").map { it.toLong() }.let { (a, b) -> Point(a, b) } }
+    private val points = input.map { line -> line.split(",") }.map { (x, y) -> Point(x.toLong(), y.toLong()) }
+
     private val edges = listOf(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1))
-    
-    private val maxX = if (testSpace) 6L else 70L
-    private val maxY = if (testSpace) 6L else 70L
 
-    private val pointsSize = if (testSpace) 12 else 1024
-    private val firstPoints = points.take(pointsSize)
+    private val boardSize = if (testSpace) 6L else 70L
+    private val cutSize = if (testSpace) 12 else 1024
+    private val cutPoints = points.take(cutSize)
 
-    fun part1() = findPaths(firstPoints.toSet()).minOf { path -> path.stepsCount() }
+    fun part1() = findPaths(cutPoints.toSet()).minOf { path -> path.stepsCount() }
 
     fun part2(): String {
-        var cutSize = pointsSize
+        var currentCutSize = points.size
 
         while (true) {
-            val simPoints = points.take(cutSize)
-            val result = findPaths(simPoints.toSet())
-            if (result.isEmpty()) {
-                val lastFallenPoint = simPoints.last()
+            val currentCutPoints = points.take(currentCutSize)
+            val paths = findPaths(currentCutPoints.toSet())
+
+            if (paths.isNotEmpty()) {
+                val lastFallenPoint = points[currentCutSize]
                 return "${lastFallenPoint.x},${lastFallenPoint.y}"
             }
 
-            cutSize++
+            currentCutSize--
         }
     }
 
@@ -31,7 +31,7 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
         val visited = mutableMapOf<Point, Int>()
 
         val startPosition = Point(0, 0)
-        val endPosition = Point(maxX, maxY)
+        val endPosition = Point(boardSize, boardSize)
         val startPath = Path(listOf(startPosition))
         val currentPaths = mutableListOf(startPath)
 
@@ -60,7 +60,7 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
         return results
     }
 
-    private fun inBounds(point: Point) = point.x in 0..maxX && point.y >= 0 && point.y <= maxY
+    private fun inBounds(point: Point) = point.x in 0..boardSize && point.y >= 0 && point.y <= boardSize
 
     data class Path(val positions: List<Point>) {
         fun stepsCount() = positions.size - 1
@@ -70,15 +70,4 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
     data class Point(val x: Long, val y: Long) {
         operator fun plus(other: Point) = Point(x + other.x, y + other.y)
     }
-}
-
-fun main() {
-    val realInput = readLines("day18.txt")
-    val exampleInput = readLines("day18.txt", true)
-
-    val r1 = Day18(exampleInput, true).part2()
-    println(r1)
-
-    val r2 = Day18(realInput).part2()
-    println(r2)
 }
