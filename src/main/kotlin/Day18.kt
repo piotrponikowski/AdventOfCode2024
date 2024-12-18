@@ -26,7 +26,7 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
         }
     }
 
-    private fun findPaths(points: Set<Point>): List<Path> {
+    private fun findPaths(blockedPoints: Set<Point>): List<Path> {
         val results = mutableListOf<Path>()
         val visited = mutableMapOf<Point, Int>()
 
@@ -45,7 +45,7 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
 
                 if (newPosition == endPosition) {
                     results += newPath
-                } else if (!points.contains(newPosition) && inBounds(newPosition)) {
+                } else if (!blockedPoints.contains(newPosition) && inBounds(newPosition)) {
                     val stateScore = visited[newPosition] ?: Int.MAX_VALUE
                     val newScore = newPath.positions.size
 
