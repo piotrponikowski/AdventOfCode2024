@@ -18,8 +18,8 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
             val paths = findPaths(currentCutPoints.toSet())
 
             if (paths.isNotEmpty()) {
-                val lastFallenPoint = points[currentCutSize]
-                return "${lastFallenPoint.x},${lastFallenPoint.y}"
+                val resultPoint = points[currentCutSize]
+                return "${resultPoint.x},${resultPoint.y}"
             }
 
             currentCutSize--
