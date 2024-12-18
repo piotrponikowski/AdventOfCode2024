@@ -51,7 +51,7 @@ class Day18(input: List<String>, testSpace: Boolean = false) {
                     val stateScore = visited[newPosition] ?: Int.MAX_VALUE
                     val newScore = newPath.positions.size
 
-                    if (newScore <= stateScore) {
+                    if (newScore < stateScore) {
                         currentPaths += newPath
                         visited[newPosition] = newScore
                     }
