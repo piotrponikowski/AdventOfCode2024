@@ -2,6 +2,7 @@ class Day19(input: List<List<String>>) {
 
     private val towels = input.first().first().split(", ")
     private val designs = input.last()
+    private val cache = mutableMapOf<String, Long>()
 
     fun part1() {
         println(towels)
@@ -13,7 +14,33 @@ class Day19(input: List<List<String>>) {
     }
 
     fun part2() {
+        println(towels)
+        println(designs)
+
+        val countDesigns = designs.map { design ->
+            println(design)
+            countDesign(design) 
         
+        }
+        println(countDesigns)
+        println(countDesigns.sum())
+    }
+
+    private fun countDesign(design: String): Long {
+        if (design.isEmpty()) return 1L
+
+        val cachedCount = cache[design]
+        if(cachedCount != null) {
+            return cachedCount
+        }
+
+        val result = towels
+            .filter { towel -> design.startsWith(towel) }
+            .map { towel -> design.drop(towel.length) }
+            .sumOf { newDesign -> countDesign(newDesign) }
+        
+        cache[design] = result
+        return result
     }
 
     private fun checkDesign(design: String): Boolean {
@@ -24,8 +51,6 @@ class Day19(input: List<List<String>>) {
             .map { towel -> design.drop(towel.length) }
             .any { newDesign -> checkDesign(newDesign) }
     }
-
-   
 }
 
 fun main() {
@@ -35,6 +60,6 @@ fun main() {
     val r1 = Day19(exampleInput).part2()
     println(r1)
 
-//    val r2 = Day19(realInput).part2()
-//    println(r2)
+    val r2 = Day19(realInput).part2()
+    println(r2)
 }
