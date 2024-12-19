@@ -4,27 +4,10 @@ class Day19(input: List<List<String>>) {
     private val designs = input.last()
     private val cache = mutableMapOf<String, Long>()
 
-    fun part1() {
-        println(towels)
-        println(designs)
+    fun part1() = designs.count { design -> checkDesign(design) }
 
-        val possibleDesigns = designs.filter { design -> checkDesign(design) }
-        println(possibleDesigns)
-        println(possibleDesigns.size)
-    }
+    fun part2() = designs.sumOf { design -> countDesign(design) }
 
-    fun part2() {
-        println(towels)
-        println(designs)
-
-        val countDesigns = designs.map { design ->
-            println(design)
-            countDesign(design) 
-        
-        }
-        println(countDesigns)
-        println(countDesigns.sum())
-    }
 
     private fun countDesign(design: String): Long {
         if (design.isEmpty()) return 1L
@@ -51,15 +34,4 @@ class Day19(input: List<List<String>>) {
             .map { towel -> design.drop(towel.length) }
             .any { newDesign -> checkDesign(newDesign) }
     }
-}
-
-fun main() {
-    val realInput = readGroups("day19.txt")
-    val exampleInput = readGroups("day19.txt", true)
-
-    val r1 = Day19(exampleInput).part2()
-    println(r1)
-
-    val r2 = Day19(realInput).part2()
-    println(r2)
 }
