@@ -1,26 +1,7 @@
 class Day21(private val codes: List<String>) {
 
-    private val numericKeypad = mapOf(
-        Point(0, 0) to '7',
-        Point(1, 0) to '8',
-        Point(2, 0) to '9',
-        Point(0, 1) to '4',
-        Point(1, 1) to '5',
-        Point(2, 1) to '6',
-        Point(0, 2) to '1',
-        Point(1, 2) to '2',
-        Point(2, 2) to '3',
-        Point(1, 3) to '0',
-        Point(2, 3) to 'A',
-    )
-
-    private val directionalKeypad = mapOf(
-        Point(1, 0) to '^',
-        Point(2, 0) to 'A',
-        Point(0, 1) to '<',
-        Point(1, 1) to 'v',
-        Point(2, 1) to '>',
-    )
+    private val numericKeypad = parseKeypad(listOf("789", "456", "123", " 0A"))
+    private val directionalKeypad = parseKeypad(listOf(" ^A", "<v>"))
 
     private val directions = mapOf(
         Point(-1, 0) to '<',
@@ -95,6 +76,11 @@ class Day21(private val codes: List<String>) {
 
         return resultPaths.map { path -> path.moves + 'A' }
     }
+
+    private fun parseKeypad(input: List<String>) = input
+        .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }
+        .associate { (point, symbol) -> point to symbol }
+        .filterValues { symbol -> symbol != ' ' }
 
     data class Path(val position: Point, val moves: List<Char>)
 
