@@ -29,47 +29,37 @@ class Day21(private val codes: List<String>) {
         Point(0, 1) to 'v'
     )
 
-    private val numericCache = prepareCache(numericKeypad)
-    private val directionalCache = prepareCache(directionalKeypad)
-
     fun part1() = codes.sumOf { code -> complexity(code, 2) }
 
     fun part2() = codes.sumOf { code -> complexity(code, 25) }
 
+    private fun complexity(code: String, maxDepth: Int) = solve(code, maxDepth) * code.dropLast(1).toLong()
 
-    private fun complexity(code: String, maxDepth: Int) = solve(code.toList(), maxDepth) * code.dropLast(1).toLong()
+    private fun solve(code: String, maxDepth: Int): Long {
+        val minCountCache = mutableMapOf<Pair<List<Char>, Int>, Long>()
 
-    private fun solve(code: List<Char>, maxDepth: Int): Long {
-        val cache = mutableMapOf<CacheKey, Long>()
-        
-        fun count(code: List<Char>, maxDepth: Int, depth: Int = 0): Long = cache.getOrPut(CacheKey(code, depth)) {
-            val keyboard = if (depth == 0) numericCache else directionalCache
+        val numericCache = prepareKeyboardCache(numericKeypad)
+        val directionalCache = prepareKeyboardCache(directionalKeypad)
 
-            var currentMove = 'A'
-            var result = 0L
+        fun minCount(code: List<Char>, maxDepth: Int, depth: Int): Long = minCountCache.getOrPut(code to depth) {
+            val keyboardCache = if (depth == 0) numericCache else directionalCache
+            val codeWithStart = (listOf('A') + code)
 
-            code.forEach { nextMove ->
-                val possibleMoves = keyboard[currentMove to nextMove]!!
-
-                if (depth == maxDepth) {
-                    result += possibleMoves.minOf { moves -> moves.size }
-                } else {
-                    result += possibleMoves.minOf { moves -> count(moves, maxDepth, depth + 1) }
+            codeWithStart.windowed(2).fold(0L) { result, (from, to) ->
+                val possibleMoves = keyboardCache[from to to]!!
+                when (depth == maxDepth) {
+                    true -> result + possibleMoves.minOf { moves -> moves.size }
+                    false -> result + possibleMoves.minOf { moves -> minCount(moves, maxDepth, depth + 1) }
                 }
-
-                currentMove = nextMove
             }
-
-            result
         }
 
-        return count(code, maxDepth)
+        return minCount(code.toList(), maxDepth, 0)
     }
 
-    private fun prepareCache(keypad: Map<Point, Char>) =
-        keypad.values.flatMap { from ->
-            keypad.values.map { to -> Pair(from, to) to findMoves(keypad, from, to) }
-        }.toMap()
+    private fun prepareKeyboardCache(keypad: Map<Point, Char>) = keypad.values
+        .flatMap { from -> keypad.values.map { to -> from to to } }
+        .associate { (from, to) -> Pair(from, to) to findMoves(keypad, from, to) }
 
     private fun findMoves(keypad: Map<Point, Char>, from: Char, to: Char): List<List<Char>> {
         val startPosition = keypad.entries.first { (_, symbol) -> symbol == from }.key
@@ -105,8 +95,6 @@ class Day21(private val codes: List<String>) {
 
         return resultPaths.map { path -> path.moves + 'A' }
     }
-
-    data class CacheKey(val code: List<Char>, val depth: Int)
 
     data class Path(val position: Point, val moves: List<Char>)
 
