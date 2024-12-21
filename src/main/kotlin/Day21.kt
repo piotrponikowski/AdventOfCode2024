@@ -37,36 +37,33 @@ class Day21(private val codes: List<String>) {
     fun part2() = codes.sumOf { code -> complexity(code, 25) }
 
 
-    private val cache = mutableMapOf<Pair<List<Char>, Int>, Long>()
+    private fun complexity(code: String, maxDepth: Int) = solve(code.toList(), maxDepth) * code.dropLast(1).toLong()
 
-    private fun complexity(code:String, maxDepth: Int) = minMoves(code.toList(), maxDepth) * code.dropLast(1).toLong()
-    
-    private fun minMoves(code: List<Char>, maxDepth: Int, depth: Int = 0): Long {
-        val cacheKey = code to depth
-        val cachedResult = cache[cacheKey]
-        if (cachedResult != null) {
-            return cachedResult
-        }
+    private fun solve(code: List<Char>, maxDepth: Int): Long {
+        val cache = mutableMapOf<CacheKey, Long>()
+        
+        fun count(code: List<Char>, maxDepth: Int, depth: Int = 0): Long = cache.getOrPut(CacheKey(code, depth)) {
+            val keyboard = if (depth == 0) numericCache else directionalCache
 
-        val keyboard = if (depth == 0) numericCache else directionalCache
+            var currentMove = 'A'
+            var result = 0L
 
-        var currentMove = 'A'
-        var result = 0L
+            code.forEach { nextMove ->
+                val possibleMoves = keyboard[currentMove to nextMove]!!
 
-        code.forEach { nextMove ->
-            val possibleMoves = keyboard[currentMove to nextMove]!!
-            
-            if (depth == maxDepth) {
-                result += possibleMoves.minOf { moves -> moves.size + 1 } 
-            } else {
-                result += possibleMoves.minOf { moves -> minMoves(moves+'A',  maxDepth, depth + 1) } 
+                if (depth == maxDepth) {
+                    result += possibleMoves.minOf { moves -> moves.size }
+                } else {
+                    result += possibleMoves.minOf { moves -> count(moves, maxDepth, depth + 1) }
+                }
+
+                currentMove = nextMove
             }
-            
-            currentMove = nextMove
+
+            result
         }
 
-        cache[cacheKey] = result
-        return result
+        return count(code, maxDepth)
     }
 
     private fun prepareCache(keypad: Map<Point, Char>) =
@@ -106,8 +103,10 @@ class Day21(private val codes: List<String>) {
             }
         }
 
-        return resultPaths.map { path -> path.moves }
+        return resultPaths.map { path -> path.moves + 'A' }
     }
+
+    data class CacheKey(val code: List<Char>, val depth: Int)
 
     data class Path(val position: Point, val moves: List<Char>)
 
