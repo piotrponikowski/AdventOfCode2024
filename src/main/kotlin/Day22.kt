@@ -1,6 +1,6 @@
 class Day22(input: List<String>) {
 
-    private val secrets = input.map { it.toLong() }
+    private val secrets = input.map { line -> line.toLong() }
 
     fun part1() = secrets.sumOf { secret -> calculateSecrets(secret).last() }
 
