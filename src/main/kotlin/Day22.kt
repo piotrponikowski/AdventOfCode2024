@@ -7,7 +7,7 @@ class Day22(input: List<String>) {
     fun part2(): Long {
         val buyTimes = secrets.map { secret -> calculateBuyTime(secret) }
         val buySignals = buyTimes.flatMap { cache -> cache.keys }.toSet()
-        
+
         return buySignals.maxOf { buySignal -> buyTimes.sumOf { cache -> cache[buySignal] ?: 0L } }
     }
 
@@ -16,7 +16,7 @@ class Day22(input: List<String>) {
         val changes = calculateChanges(prices)
         val result = mutableMapOf<String, Long>()
 
-        changes.windowed(4).mapIndexed { index, lastChanges ->
+        changes.windowed(4).forEachIndexed { index, lastChanges ->
             result.computeIfAbsent(lastChanges.joinToString()) { prices[index + 4] }
         }
 
@@ -27,7 +27,7 @@ class Day22(input: List<String>) {
         .windowed(2).map { (pricePrev, priceNext) -> priceNext - pricePrev }
 
     private fun calculatePrices(secret: Long) = calculateSecrets(secret)
-        .map { nextSecret -> nextSecret.toString().last().toString().toLong() }
+        .map { nextSecret -> nextSecret % 10 }
 
     private fun calculateSecrets(secret: Long) = (0..<2000)
         .runningFold(secret) { currentSecret, _ -> nextSecret(currentSecret) }
