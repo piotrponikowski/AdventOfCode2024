@@ -12,54 +12,39 @@ class Day23(input: List<String>) {
 
     fun part2() = groups()
         .maxBy { group -> group.size }
-        .sorted()
         .joinToString(",")
 
     
-    private fun groups(): Set<Set<String>> {
-        val result = mutableSetOf<Set<String>>()
+    private fun groups(): Set<List<String>> {
+        val result = mutableSetOf<List<String>>()
 
         computers.keys.forEach { computer ->
             val connections = computers[computer]!!
-            
-            val startGroup = setOf(computer)
-            var currentGroups = setOf(startGroup)
-            result += startGroup
+            var currentGroups = setOf(listOf(computer))
 
             while (currentGroups.isNotEmpty()) {
-                val nextGroups = mutableSetOf<Set<String>>()
+                val nextGroups = mutableSetOf<List<String>>()
                 
                 currentGroups.forEach { currentGroup ->
                     connections.forEach { nextComputer ->
                         if (nextComputer !in currentGroup) {
                             val otherConnections = computers[nextComputer]!!
                             if (otherConnections.containsAll(currentGroup)) {
-                                val nextGroup = currentGroup + nextComputer
+                                val nextGroup = (currentGroup + nextComputer).sorted()
                                 
-                                if (nextGroup !in nextGroups) {
+                                if (nextGroup !in result) {
                                     nextGroups += nextGroup
+                                    result += nextGroup
                                 }
                             }
                         }
                     }
                 }
                 
-                result += nextGroups
                 currentGroups = nextGroups
             }
         }
 
         return result
     }
-}
-
-fun main() {
-    val realInput = readLines("day23.txt")
-    val exampleInput = readLines("day23.txt", true)
-
-//    val r1 = Day23(exampleInput).part2()
-//    println(r1)
-
-    val r2 = Day23(realInput).part2()
-    println(r2)
 }
