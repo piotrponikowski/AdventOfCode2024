@@ -12,10 +12,9 @@ class Day25(input: List<List<String>>) {
 
     private fun isKey(input: List<String>) = input.last().all { symbol -> symbol == '#' }
 
-    private fun parse(input: List<String>): List<Int> {
-        val data = input.flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
-        return (0..4).map { x -> data.count { (point, symbol) -> point.x == x && symbol == '#' } - 1 }
-    }
-
+    private fun parse(input: List<String>) = input
+        .flatMapIndexed { y, line -> line.mapIndexed { x, symbol -> Point(x, y) to symbol } }.toMap()
+        .let { data -> (0..4).map { x -> data.count { (point, symbol) -> point.x == x && symbol == '#' } - 1 } }
+    
     data class Point(val x: Int, val y: Int)
 }
