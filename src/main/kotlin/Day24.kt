@@ -12,58 +12,58 @@ class Day24(input: List<List<String>>) {
     fun part1() = calculate()
 
     fun part2() = swappedWires()
-    
+
     private fun swappedWires(): String {
-        val and1 = gates.filter { gate -> gate.type == GateType.AND }
+        val and1 = gates
+            .filter { gate -> gate.type == GateType.AND }
             .filter { gate -> gate.inputs.map { input -> input.take(1) }.containsAll(listOf("x", "y")) }
-            .sortedBy { it.inputs.first().drop(1) }
 
-        val xor1 = gates.filter { gate -> gate.type == GateType.XOR }
+        val xor1 = gates
+            .filter { gate -> gate.type == GateType.XOR }
             .filter { gate -> gate.inputs.map { input -> input.take(1) }.containsAll(listOf("x", "y")) }
-            .sortedBy { it.inputs.first().drop(1) }
 
-        val and2 = gates.filter { gate -> gate.type == GateType.AND }
+        val and2 = gates
+            .filter { gate -> gate.type == GateType.AND }
             .filter { gate -> gate !in and1 }
-            .sortedBy { it.inputs.first().drop(1) }
 
-        val xor2 = gates.filter { gate -> gate.type == GateType.XOR }
+        val xor2 = gates
+            .filter { gate -> gate.type == GateType.XOR }
             .filter { gate -> gate !in xor1 }
-            .sortedBy { it.output.drop(1) }
 
-        val or = gates.filter { gate -> gate.type == GateType.OR }
-            .filter { gate -> gate !in xor1 }
-            .sortedBy { it.output.drop(1) }
+        val or = gates
+            .filter { gate -> gate.type == GateType.OR }
+        
+        val and2Inputs = and2.flatMap { gate -> gate.inputs }.toSet()
+        val xor2Inputs = xor2.flatMap { gate -> gate.inputs }.toSet()
+        val orInputs = or.flatMap { gate -> gate.inputs }.toSet()
 
-        // 1st level AND should return only to OR (except first gate)
+        // 1st level AND should output only to OR (except first gate)
         val condition1 = and1
             .filter { gate -> !gate.inputs.all { input -> input.endsWith("00") } }
             .map { gate -> gate.output }
-            .filter { output -> output !in or.flatMap { gate -> gate.inputs }.toSet() }
+            .filter { output -> output !in orInputs }
 
-        // 2nd level AND should return only to OR
+        // 2nd level AND should output only to OR
         val condition2 = and2
             .map { gate -> gate.output }
-            .filter { output -> output !in or.flatMap { gate -> gate.inputs }.toSet() }
+            .filter { output -> output !in orInputs }
 
-        // 1st level XOR should return only to 2nd level XOR/AND (except first gate)
+        // 1st level XOR should output only to 2nd level XOR/AND (except first gate)
         val condition3 = xor1
             .map { gate -> gate.output }
             .filter { output -> !output.endsWith("00") }
-            .filter { output ->
-                output !in xor2.flatMap { gate -> gate.inputs }
-                    .toSet() || output !in and2.flatMap { gate -> gate.inputs }.toSet()
-            }
+            .filter { output -> output !in xor2Inputs || output !in and2Inputs }
 
-        // 2nd level AND should return only to z
+        // 2nd level AND should output only to z
         val condition4 = xor2
             .map { gate -> gate.output }
             .filter { output -> !output.startsWith("z") }
 
-        // OR should return only to 2nd level XOR (except last gate)
+        // OR should output only to 2nd level XOR (except last gate)
         val condition5 = or
             .map { gate -> gate.output }
             .filter { output -> !output.endsWith("45") }
-            .filter { output -> output !in xor2.flatMap { gate -> gate.inputs }.toSet() }
+            .filter { output -> output !in xor2Inputs }
 
         val allConditions = (condition1 + condition2 + condition3 + condition4 + condition5)
         return allConditions.toSet().toSortedSet().joinToString(",")
