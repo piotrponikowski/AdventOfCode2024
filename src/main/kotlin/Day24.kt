@@ -9,16 +9,67 @@ class Day24(input: List<List<String>>) {
         .map { (operation, output) -> operation.split(" ") + output }
         .map { (input1, type, input2, output) -> Operation(listOf(input1, input2), GateType.valueOf(type), output) }
 
-    fun part1(): Long {
-        println(inputs)
-        println(gates)
+    fun part1() = calculate()
 
-        return solve(inputs)!!.toLong(2)
+    fun part2() = swappedWires()
+    
+    private fun swappedWires(): String {
+        val and1 = gates.filter { gate -> gate.type == GateType.AND }
+            .filter { gate -> gate.inputs.map { input -> input.take(1) }.containsAll(listOf("x", "y")) }
+            .sortedBy { it.inputs.first().drop(1) }
+
+        val xor1 = gates.filter { gate -> gate.type == GateType.XOR }
+            .filter { gate -> gate.inputs.map { input -> input.take(1) }.containsAll(listOf("x", "y")) }
+            .sortedBy { it.inputs.first().drop(1) }
+
+        val and2 = gates.filter { gate -> gate.type == GateType.AND }
+            .filter { gate -> gate !in and1 }
+            .sortedBy { it.inputs.first().drop(1) }
+
+        val xor2 = gates.filter { gate -> gate.type == GateType.XOR }
+            .filter { gate -> gate !in xor1 }
+            .sortedBy { it.output.drop(1) }
+
+        val or = gates.filter { gate -> gate.type == GateType.OR }
+            .filter { gate -> gate !in xor1 }
+            .sortedBy { it.output.drop(1) }
+
+        // 1st level AND should return only to OR (except first gate)
+        val condition1 = and1
+            .filter { gate -> !gate.inputs.all { input -> input.endsWith("00") } }
+            .map { gate -> gate.output }
+            .filter { output -> output !in or.flatMap { gate -> gate.inputs }.toSet() }
+
+        // 2nd level AND should return only to OR
+        val condition2 = and2
+            .map { gate -> gate.output }
+            .filter { output -> output !in or.flatMap { gate -> gate.inputs }.toSet() }
+
+        // 1st level XOR should return only to 2nd level XOR/AND (except first gate)
+        val condition3 = xor1
+            .map { gate -> gate.output }
+            .filter { output -> !output.endsWith("00") }
+            .filter { output ->
+                output !in xor2.flatMap { gate -> gate.inputs }
+                    .toSet() || output !in and2.flatMap { gate -> gate.inputs }.toSet()
+            }
+
+        // 2nd level AND should return only to z
+        val condition4 = xor2
+            .map { gate -> gate.output }
+            .filter { output -> !output.startsWith("z") }
+
+        // OR should return only to 2nd level XOR (except last gate)
+        val condition5 = or
+            .map { gate -> gate.output }
+            .filter { output -> !output.endsWith("45") }
+            .filter { output -> output !in xor2.flatMap { gate -> gate.inputs }.toSet() }
+
+        val allConditions = (condition1 + condition2 + condition3 + condition4 + condition5)
+        return allConditions.toSet().toSortedSet().joinToString(",")
     }
 
-    fun part2() = 2
-
-    private fun solve(inputs: Map<String, Int>): String? {
+    private fun calculate(): Long {
         val values = inputs.toMutableMap()
         val unsolvedGates = gates.toMutableList()
 
@@ -44,10 +95,6 @@ class Day24(input: List<List<String>>) {
                 }
             }
 
-            if (solvedGates.isEmpty()) {
-                return null
-            }
-
             unsolvedGates -= solvedGates
         }
 
@@ -55,10 +102,10 @@ class Day24(input: List<List<String>>) {
     }
 
     private fun decodeValue(values: Map<String, Int>, prefix: String = "z") = values.keys
-        .filter { value -> value.startsWith(prefix) }
+        .filter { output -> output.startsWith(prefix) }
         .sorted().reversed()
-        .map { values[it]!! }
-        .joinToString("")
+        .map { output -> values[output]!! }
+        .joinToString("").toLong(2)
 
     enum class GateType { AND, OR, XOR }
 

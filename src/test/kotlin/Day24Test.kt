@@ -23,7 +23,7 @@ class Day24Test : FunSpec({
 
     context("Part 2") {
         test("should solve real input") {
-            Day24(realInput).part2() shouldBe 2
+            Day24(realInput).part2() shouldBe "bks,hnd,nrn,tdv,tjp,z09,z16,z23"
         }
     }
 })
