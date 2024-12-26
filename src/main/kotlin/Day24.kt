@@ -1,73 +1,66 @@
-import java.lang.IllegalArgumentException
-
 class Day24(input: List<List<String>>) {
 
-    private val inputs = input.first().map { it.split(": ") }.map { (a, b) -> a to b.toInt() }
+    private val inputs = input.first()
+        .map { line -> line.split(": ") }
+        .associate { (input, value) -> input to value.toInt() }
 
-    private val operations = input.last()
-        .map { it.split(" -> ") }
-        .map { (a, b) -> a.split(" ") + b }
-        .map { (a, b, c, d) -> Operation(a, b, c, d) }
+    private val gates = input.last()
+        .map { line -> line.split(" -> ") }
+        .map { (operation, output) -> operation.split(" ") + output }
+        .map { (input1, type, input2, output) -> Operation(listOf(input1, input2), GateType.valueOf(type), output) }
 
-    fun part1() {
+    fun part1(): Long {
         println(inputs)
-        println(operations)
+        println(gates)
 
-        solve()
+        return solve(inputs)!!.toLong(2)
     }
 
     fun part2() = 2
 
-    private fun solve() {
-        val currentInputs = inputs.toMap().toMutableMap()
-        val currentOperations = operations.toMutableList()
+    private fun solve(inputs: Map<String, Int>): String? {
+        val values = inputs.toMutableMap()
+        val unsolvedGates = gates.toMutableList()
 
-        while (currentOperations.isNotEmpty()) {
-            val solvedOperations = mutableSetOf<Operation>()
-            
-            currentOperations.forEach { currentOperation ->
-                val value1 = currentInputs[currentOperation.input1]
-                val value2 = currentInputs[currentOperation.input2]
+        while (unsolvedGates.isNotEmpty()) {
+            val solvedGates = mutableSetOf<Operation>()
 
-                if (value1 != null && value2 != null) {
-                    val outputValue = when (currentOperation.gate) {
-                        "AND" -> value1.and(value2)
-                        "OR" -> value1.or(value2)
-                        "XOR" -> value1.xor(value2)
-                        else -> throw IllegalArgumentException()
+            unsolvedGates.forEach { currentGate ->
+                val (input1, input2) = currentGate.inputs
+                val output = currentGate.output
+
+                val inputValue1 = values[input1]
+                val inputValue2 = values[input2]
+
+                if (inputValue1 != null && inputValue2 != null) {
+                    val outputValue = when (currentGate.type) {
+                        GateType.AND -> inputValue1.and(inputValue2)
+                        GateType.OR -> inputValue1.or(inputValue2)
+                        GateType.XOR -> inputValue1.xor(inputValue2)
                     }
 
-                    currentInputs[currentOperation.output] = outputValue
-                    solvedOperations += currentOperation
+                    values[output] = outputValue
+                    solvedGates += currentGate
                 }
             }
 
-            currentOperations -= solvedOperations
+            if (solvedGates.isEmpty()) {
+                return null
+            }
+
+            unsolvedGates -= solvedGates
         }
 
-        val sortedKeys = currentInputs.keys
-            .filter { a -> a.startsWith("z") }
-            .sorted().reversed()
-        
-        
-        val result = sortedKeys
-            .map { currentInputs[it]!! }
-            .joinToString("")
-
-        println(result)
-        println(result.toLong(2))
+        return decodeValue(values)
     }
 
-    data class Operation(val input1: String, val gate: String, val input2: String, val output: String)
-}
+    private fun decodeValue(values: Map<String, Int>, prefix: String = "z") = values.keys
+        .filter { value -> value.startsWith(prefix) }
+        .sorted().reversed()
+        .map { values[it]!! }
+        .joinToString("")
 
-fun main() {
-    val realInput = readGroups("day24.txt")
-    val exampleInput = readGroups("day24.txt", true)
+    enum class GateType { AND, OR, XOR }
 
-    val r1 = Day24(exampleInput).part1()
-    println(r1)
-
-    val r2 = Day24(realInput).part1()
-    println(r2)
+    data class Operation(val inputs: List<String>, val type: GateType, val output: String)
 }
